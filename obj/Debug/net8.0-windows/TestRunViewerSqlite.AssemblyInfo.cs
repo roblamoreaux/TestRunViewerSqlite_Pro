@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TestRunViewerSqlite")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ee9e325d7c07ba27daf6e6d43b90270425acb958")]
 [assembly: System.Reflection.AssemblyProductAttribute("TestRunViewerSqlite")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TestRunViewerSqlite")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

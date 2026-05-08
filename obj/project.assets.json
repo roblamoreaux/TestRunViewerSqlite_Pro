@@ -613,11 +613,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+      "projectUniqueName": "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
       "projectName": "TestRunViewerSqlite",
-      "projectPath": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+      "projectPath": "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
       "packagesPath": "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\obj\\",
+      "outputPath": "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
