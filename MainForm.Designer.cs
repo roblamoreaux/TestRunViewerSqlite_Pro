@@ -31,7 +31,7 @@ namespace TestRunViewerSqlite
             this.txtDbPath.ReadOnly = true; this.txtDbPath.SetBounds(138,14,500,28);
             this.btnLoad.Text = "Load Overview"; this.btnLoad.SetBounds(650,12,150,32); this.btnLoad.Click += btnLoad_Click;
             // Filters group
-            this.grpFilters.Text = "Filters"; this.grpFilters.SetBounds(12,52,788,80);
+            this.grpFilters.Text = "Filters"; this.grpFilters.SetBounds(12,52,788,70);
             this.cboVerdict.DropDownStyle = ComboBoxStyle.DropDownList; this.cboVerdict.SetBounds(10,34,100,28);
             var lblVerdict = new Label(){Text="Verdict:", AutoSize=true}; lblVerdict.SetBounds(10,10,60,20);
             this.grpFilters.Controls.Add(lblVerdict); this.grpFilters.Controls.Add(this.cboVerdict);
@@ -55,22 +55,39 @@ namespace TestRunViewerSqlite
             this.btnExportOverview.Text = "Export Overview..."; this.btnExportOverview.SetBounds(620,20,150,30); this.btnExportOverview.Click += btnExportOverview_Click;
             this.grpStats.Controls.AddRange(new Control[]{this.btnLoadStatsAll, this.btnExportOverview});
             // Split bottom
-            split.SetBounds(12,258,788,440); split.Orientation = Orientation.Horizontal; split.SplitterDistance=210; split.Anchor = AnchorStyles.Left|AnchorStyles.Top|AnchorStyles.Right|AnchorStyles.Bottom;
-            this.dgvOverview.ReadOnly=true; this.dgvOverview.SelectionMode = DataGridViewSelectionMode.FullRowSelect; this.dgvOverview.Dock = DockStyle.Fill; this.dgvOverview.SelectionChanged += dgvOverview_SelectionChanged;
+            split.SetBounds(12,258,788,540); 
+            split.Orientation = Orientation.Horizontal; 
+            split.SplitterDistance=210;
+            split.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;// |AnchorStyles.Bottom;
+            this.dgvOverview.ReadOnly=true; 
+            this.dgvOverview.SelectionMode = DataGridViewSelectionMode.FullRowSelect; 
+            this.dgvOverview.Dock = DockStyle.Fill; 
+            this.dgvOverview.SelectionChanged += dgvOverview_SelectionChanged;
             var containerTop = new Panel(){Dock=DockStyle.Fill}; containerTop.Controls.Add(this.dgvOverview);
             split.Panel1.Controls.Add(containerTop);
             // Tabs
             tabs.Dock = DockStyle.Fill;
             // Details tab
-            this.dgvDetails.ReadOnly=true; this.dgvDetails.Dock = DockStyle.Fill; this.btnExportDetails.Text = "Export..."; this.btnExportDetails.Dock = DockStyle.Top; this.btnExportDetails.Click += btnExportDetails_Click;
-            tabDetails.Controls.Add(this.dgvDetails); tabDetails.Controls.Add(this.btnExportDetails);
+            this.dgvDetails.ReadOnly=true; 
+            this.dgvDetails.Dock = DockStyle.Fill; 
+            this.btnExportDetails.Text = "Export..."; 
+            this.btnExportDetails.Dock = DockStyle.Top;
+            this.btnExportDetails.Click += btnExportDetails_Click;
+            tabDetails.Controls.Add(this.dgvDetails); 
+            tabDetails.Controls.Add(this.btnExportDetails);
             // Stats (All)
-            this.dgvStatsAll.ReadOnly=true; this.dgvStatsAll.Dock = DockStyle.Fill; this.btnExportStatsAll.Text = "Export..."; this.btnExportStatsAll.Dock = DockStyle.Top; this.btnExportStatsAll.Click += btnExportStatsAll_Click;
-            tabAll.Controls.Add(this.dgvStatsAll); tabAll.Controls.Add(this.btnExportStatsAll);
+            this.dgvStatsAll.ReadOnly=true; 
+            this.dgvStatsAll.Dock = DockStyle.Fill; 
+            this.btnExportStatsAll.Text = "Export..."; 
+            this.btnExportStatsAll.Dock = DockStyle.Top; 
+            this.btnExportStatsAll.Click += btnExportStatsAll_Click;
+            tabAll.Controls.Add(this.dgvStatsAll); 
+            tabAll.Controls.Add(this.btnExportStatsAll);
             // Stats by Serial
-            this.dgvStatsSerial.ReadOnly=true; this.dgvStatsSerial.Dock = DockStyle.Fill; this.btnLoadStatsSerial.Text = "Load Stats"; this.btnLoadStatsSerial.Click += btnLoadStatsSerial_Click; this.btnExportStatsSerial.Text = "Export..."; this.btnExportStatsSerial.Click += btnExportStatsSerial_Click; lblSerial.Text = "Serial:"; lblSerial.AutoSize=true; lblSerial.SetBounds(3,10,50,20); this.txtSerial.SetBounds(60,6,150,28); this.btnLoadStatsSerial.SetBounds(220,5,100,30); this.btnExportStatsSerial.SetBounds(330,5,100,30);
+            this.dgvStatsSerial.ReadOnly=true; 
+            this.dgvStatsSerial.Dock = DockStyle.Fill; this.btnLoadStatsSerial.Text = "Load Stats"; this.btnLoadStatsSerial.Click += btnLoadStatsSerial_Click; this.btnExportStatsSerial.Text = "Export..."; this.btnExportStatsSerial.Click += btnExportStatsSerial_Click; lblSerial.Text = "Serial:"; lblSerial.AutoSize=true; lblSerial.SetBounds(3,10,50,20); this.txtSerial.SetBounds(60,6,150,28); this.btnLoadStatsSerial.SetBounds(220,5,100,30); this.btnExportStatsSerial.SetBounds(330,5,100,30);
             var pnlSer1= new Panel(){Dock=DockStyle.Top, Height=40}; pnlSer1.Controls.AddRange(new Control[]{lblSerial,this.txtSerial,this.btnLoadStatsSerial,this.btnExportStatsSerial});
-            tabSer.Controls.Add(this.dgvStatsSerial); tabSer.Controls.Add(pnlSer1);
+            tabSer.Controls.Add(this.dgvStatsSerial); tabSer.Controls.Add(pnlSer1); 
             tabs.TabPages.AddRange(new[]{tabDetails,tabAll,tabSer});
             split.Panel2.Controls.Add(tabs);
             // Status
@@ -83,7 +100,7 @@ namespace TestRunViewerSqlite
             //this.grpFilters.Controls.Add(this.txtPlanRunName);
             
             this.Controls.AddRange(new Control[]{this.btnOpenDb,this.txtDbPath,this.btnLoad,this.grpFilters,this.grpMapping,this.grpStats,split,this.statusStrip1, this.txtPlanRunName });
-            this.Text = "Test Run Viewer (SQLite)"; this.ClientSize = new System.Drawing.Size(812,720);
+            this.Text = "Test Run Viewer (SQLite)"; this.ClientSize = new System.Drawing.Size(812,920);
             
 
         }
