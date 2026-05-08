@@ -1,0 +1,72 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{032F8AD7-CB7F-CD17-AF1E-E89442BABAD6}|TestRunViewerSqlite.csproj|c:\\users\\robert.lamoreaux\\downloads\\testrunviewersqlite_procomp\\testrunviewersqlite_pro\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{032F8AD7-CB7F-CD17-AF1E-E89442BABAD6}|TestRunViewerSqlite.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{032F8AD7-CB7F-CD17-AF1E-E89442BABAD6}|TestRunViewerSqlite.csproj|c:\\users\\robert.lamoreaux\\downloads\\testrunviewersqlite_procomp\\testrunviewersqlite_pro\\mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{032F8AD7-CB7F-CD17-AF1E-E89442BABAD6}|TestRunViewerSqlite.csproj|solutionrelative:mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{032F8AD7-CB7F-CD17-AF1E-E89442BABAD6}|TestRunViewerSqlite.csproj|C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{032F8AD7-CB7F-CD17-AF1E-E89442BABAD6}|TestRunViewerSqlite.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainForm.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\MainForm.Designer.cs",
+              "RelativeDocumentMoniker": "MainForm.Designer.cs",
+              "ToolTip": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\MainForm.Designer.cs",
+              "RelativeToolTip": "MainForm.Designer.cs",
+              "ViewState": "AgIAAEwAAAAAAAAAAAAAAFQAAABrAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-04T15:45:08.315Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainForm.cs",
+              "DocumentMoniker": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\MainForm.cs",
+              "RelativeDocumentMoniker": "MainForm.cs",
+              "ToolTip": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\MainForm.cs",
+              "RelativeToolTip": "MainForm.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAAwGQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-06T18:31:55.269Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainForm.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_ProComp\\TestRunViewerSqlite_Pro\\MainForm.cs",
+              "RelativeDocumentMoniker": "MainForm.cs",
+              "ToolTip": "C:\\Users\\robert.lamoreaux\\Downloads\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\MainForm.cs [Design]",
+              "RelativeToolTip": "..\\..\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\MainForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-06T18:30:00.55Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
