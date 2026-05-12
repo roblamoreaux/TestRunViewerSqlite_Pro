@@ -140,3 +140,5 @@ C:\Users\robert.lamoreaux\DocumentsL\GitHub\TestRunViewerSqlite_Pro\TestRunViewe
 C:\Users\robert.lamoreaux\DocumentsL\GitHub\TestRunViewerSqlite_Pro\TestRunViewerSqlite_Pro\obj\Debug\net8.0-windows\TestRunViewerSqlite.pdb
 C:\Users\robert.lamoreaux\DocumentsL\GitHub\TestRunViewerSqlite_Pro\TestRunViewerSqlite_Pro\obj\Debug\net8.0-windows\TestRunViewerSqlite.genruntimeconfig.cache
 C:\Users\robert.lamoreaux\DocumentsL\GitHub\TestRunViewerSqlite_Pro\TestRunViewerSqlite_Pro\obj\Debug\net8.0-windows\ref\TestRunViewerSqlite.dll
+C:\Users\robert.lamoreaux\DocumentsL\GitHub\TestRunViewerSqlite_Pro\TestRunViewerSqlite_Pro\obj\Debug\net8.0-windows\TestRunViewerSqlite.MainForm.resources
+C:\Users\robert.lamoreaux\DocumentsL\GitHub\TestRunViewerSqlite_Pro\TestRunViewerSqlite_Pro\obj\Debug\net8.0-windows\TestRunViewerSqlite.csproj.GenerateResource.cache

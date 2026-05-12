@@ -16,6 +16,252 @@ namespace TestRunViewerSqlite
                 private string SettingsFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TestRunViewerSqlite"); 
                 private string SettingsFile => Path.Combine(SettingsFolder, "settings.json");
         */
+        private readonly string _detailsSql = @"-- GetParentName source
+
+--WITH 
+WITH RECURSIVE GetStepName as (
+SELECT
+	testrun.RunID , 
+	TestRun.ParentRunID, 
+	testRun.PlanRunID ,
+	params.Value As ParentName,
+	'' as StepName,
+	0 as level
+FROM
+	(testrun
+INNER JOIN testrun2params ON
+	((testrun.RunID = testrun2params.Scope)
+		AND (testrun.runid = testrun2params.runid))
+INNER JOIN params ON
+		testrun2params.paramid = params.paramid)
+WHERE
+	((((params.Name)= 'Name')
+		AND ((params.GroupName)= '')))
+	AND testrun.ParentRunID is NULL
+UNION
+SELECT
+	e.RunID ,
+	e.ParentRunID,
+	e.PlanRunID,
+	eh.ParentName || '\' || eh.StepName ,
+	params.Value ,
+	eh.level + 1 as level
+FROM
+	testrun e
+join GetStepName eh ON
+	e.ParentRunID = eh.RunID
+INNER JOIN testrun2params ON
+	( (e.runid = testrun2params.runid )
+		AND (e.runid = testrun2params.Scope))
+INNER JOIN params ON
+		testrun2params.paramid = params.paramid
+WHERE
+	((((params.Name)= 'Name')
+		AND ((params.GroupName)= '')))
+),
+--with 
+GetStepMinLimit AS
+(
+SELECT
+	testrun2params.scope,
+	testrun2params.runid,
+	params.groupname,
+	params.name,
+	params.value AS MinLimit
+FROM
+	(testrun
+INNER JOIN testrun2params ON
+	testrun.runid = testrun2params.runid)
+INNER JOIN params ON
+	testrun2params.paramid = params.paramid
+WHERE
+	(((testrun2params.scope)= testrun.runid)
+		And ((testrun2params.runid)= testrun.runid)
+			And ((params.groupname)= 'Limits')
+				And ((params.name)= 'Minimum Value')))
+,
+ GetStepMaxLimit AS 
+(
+SELECT
+	testrun2params.scope,
+	testrun2params.runid,
+	params.name,
+	params.value AS MaxLimit,
+	params.groupname
+FROM
+	(testrun
+INNER JOIN testrun2params ON
+	testrun.runid = testrun2params.runid)
+INNER JOIN params ON
+	testrun2params.paramid = params.paramid
+WHERE
+	(((testrun2params.scope)= testrun.runid)
+		And ((testrun2params.runid)= testrun.runid)
+			And ((params.name)= 'Maximum Value')
+				And ((params.groupname)= 'Limits')))
+,
+GetStepVerdict AS (
+SELECT
+	testrun2params.scope,
+	testrun2params.runid,
+	params.name,
+	params.value AS Verdict
+FROM
+	(testrun
+INNER JOIN testrun2params ON
+	testrun.runid = testrun2params.runid)
+INNER JOIN params ON
+	testrun2params.paramid = params.paramid
+WHERE
+	(((testrun2params.scope)= testrun.runid)
+		And ((testrun2params.runid)= testrun.runid)
+			And ((params.name)= 'Verdict')
+				And ((params.value)<> 'NotSet')))
+,
+GetStepTimestamp AS (
+SELECT
+	testrun2params.scope,
+	testrun2params.runid,
+	params.name,
+	params.value AS [TimeStamp],
+	params.groupname
+FROM
+	(testrun
+INNER JOIN testrun2params ON
+	testrun.runid = testrun2params.runid)
+INNER JOIN params ON
+	testrun2params.paramid = params.paramid
+WHERE
+	(((testrun2params.scope)= testrun.runid)
+		And ((testrun2params.runid)= testrun.runid)
+			And ((params.name)= 'StartTime')))
+,
+ GetStepCheckLimit AS(
+SELECT testrun2params.scope, testrun2params.runid, params.name, params.value AS CheckLimit, params.groupname
+FROM (testrun INNER JOIN testrun2params ON testrun.runid = testrun2params.runid) INNER JOIN params ON testrun2params.paramid = params.paramid
+WHERE (((testrun2params.scope)= testrun.runid) And ((testrun2params.runid)= testrun.runid) And ((params.name)= 'Check Limits') And ((params.groupname)= 'Limits')))
+--,
+/* GetStepName AS(
+SELECT testrun2params.scope, testrun2params.runid, params.name, params.value AS StepName, params.groupname
+FROM (testrun INNER JOIN testrun2params ON testrun.runid = testrun2params.runid) INNER JOIN params ON testrun2params.paramid = params.paramid
+WHERE (((testrun2params.scope)= testrun.runid) And ((testrun2params.runid)= testrun.runid) And ((params.name)= 'Step Name')))
+,
+ GetParentName AS(
+SELECT testrun.runid, testrun.parentrunid, testrun2params.scope, params.Value AS ParentName
+FROM (testrun INNER JOIN testrun2params ON (testrun.ParentRunID = testrun2params.Scope) AND (testrun.runid = testrun2params.runid)) INNER JOIN params ON testrun2params.paramid = params.paramid
+WHERE (((params.Name)= 'Name') AND ((params.GroupName)= ''))
+),
+GrandParentName as (
+SELECT
+	testrun.runid as gprunid,
+	testrun.parentrunid as gpprunid,
+	testrun2params.scope as gpscope,
+	params.Value AS GParentName
+FROM
+	(testrun
+INNER JOIN testrun2params ON
+	(testrun.ParentRunID = testrun2params.Scope)
+	AND (testrun.runid = testrun2params.runid))
+INNER JOIN params ON
+	testrun2params.paramid = params.paramid
+WHERE
+	(((params.Name)= 'Name')
+		AND ((params.GroupName)= ''))
+),
+GGrandParentName as (
+SELECT
+	testrun.runid as gprunid,
+	testrun.parentrunid as gpprunid,
+	testrun2params.scope as gpscope,
+	params.Value AS GGParentName
+FROM
+	(testrun
+INNER JOIN testrun2params ON
+	(testrun.ParentRunID = testrun2params.Scope)
+	AND (testrun.runid = testrun2params.runid))
+INNER JOIN params ON
+	testrun2params.paramid = params.paramid
+WHERE
+	(((params.Name)= 'Name')
+		AND ((params.GroupName)= ''))
+)*/
+SELECT
+	--GGrandParentName.GGParentName,
+	--GrandParentName.GParentName,
+	--GetParentName.ParentName,,
+    --testrun.RunID || '|' || GetStepTimestamp.TimeStamp || '|' || COALESCE(result.Dim0, 'NULL') AS PrimaryKey,
+	GetStepName.ParentName,
+	GetStepName.StepName,
+	GetStepTimestamp.TimeStamp,
+	resulttype.Dim0 as SignalName,
+	result.dim0 as Signal,
+	resulttype.Dim1 as ValueName,
+	result.dim1 as Value,
+	GetStepMinLimit.MinLimit,
+	GetStepMaxLimit.MaxLimit,
+	GetStepVerdict.Verdict,
+	GetStepCheckLimit.CheckLimit,
+	resulttype.Dim2 as ValueName2,
+	result.Dim2 as Value2,
+	resulttype.Dim3 as ValueName3,
+	result.Dim3 as Value3,
+	planrun.planrunnumber,
+	testrun.parentrunid,
+	testrun.runid,
+    testrun.RunID || '|' || GetStepTimestamp.TimeStamp || '|' || COALESCE(result.Dim0, 'NULL') AS PrimaryKey
+	
+	
+FROM
+	--((
+	((((((((((planrun
+left JOIN testrun ON
+	planrun.runid = testrun.planrunid)
+LEFT JOIN resultseries ON
+	testrun.runid = resultseries.runid)
+LEFT JOIN result ON
+	resultseries.resultseriesid = result.resultseriesid)
+LEFT JOIN resulttype ON
+	resultseries.resulttypeid = resulttype.resulttypeid)
+LEFT JOIN GetStepName ON
+	testrun.runid = GetStepName.runid)
+LEFT JOIN GetStepMinLimit ON
+	testrun.runid = GetStepMinLimit.runid)
+LEFT JOIN GetStepMaxLimit ON
+	testrun.runid = GetStepMaxLimit.runid)
+LEFT JOIN GetStepVerdict ON
+	testrun.runid = GetStepVerdict.runid)
+LEFT JOIN GetStepTimestamp ON
+	testrun.runid = GetStepTimestamp.runid)
+LEFT JOIN GetStepCheckLimit ON
+	testrun.RunID = GetStepCheckLimit.runid)
+/*LEFT JOIN GetParentName ON
+	testrun.RunID = GetParentName.runid)
+ Left Join GrandParentName on GetParentName.parentrunid = GrandParentName.gprunid)  
+ Left Join GGrandParentName on GrandParentName.gpprunid  = GGrandParentName.gprunid
+*/
+	WHERE
+	(((planrun.planrunnumber)=@PlanRunNumber))
+---ORDER BY
+GROUP BY 
+    GetStepName.ParentName,
+	GetStepName.StepName,
+	GetStepTimestamp.TimeStamp,
+	resulttype.Dim0,
+	result.dim0,
+	resulttype.Dim1,
+	resulttype.Dim2,
+	resulttype.Dim3,
+	planrun.planrunnumber,
+	testrun.parentrunid,
+	testrun.runid,
+    PrimaryKey
+ORDER BY
+	PrimaryKey;";
+/*    testrun.runid,
+	GetStepTimestamp.TimeStamp,
+    resulttype.Dim0,
+	result.dim0;";
+*/
         private readonly string _overviewSqlSN = @"-- GetParentName source
 
 WITH 
@@ -160,7 +406,7 @@ INNER JOIN GetStepTimestamp ON testrun.runid = GetStepTimestamp.runid
 WHERE testrun.RunID = (PlanRun.RunID + 1)
 ORDER BY planrun.PlanRunNumber, GetStepTimestamp.TimeStamp
 ";
-        private readonly string _detailsSql = @"SELECT
+        private readonly string _summarySql = @"SELECT
 	planrun.planrunnumber,
 	params.groupname,
 	params.name,
@@ -227,7 +473,16 @@ With  GetReport AS (
 			testrun2params.runid,
 			params.groupname,
 			params.name,
-			params.value AS MinLimit
+			params.value as MinLimit
+            --case
+            --   WHEN
+            --     ((typeof(params.value) = 'integer')
+            --      OR  (typeof(params.value) = 'real'))
+            --   THEN
+            --     -999999.00 --params.value
+            --   ELSE
+            --     0.0 
+            --END MinLimit
 		FROM
 			(testrun
 		INNER JOIN testrun2params ON
@@ -246,8 +501,8 @@ With  GetReport AS (
 			testrun2params.scope,
 			testrun2params.runid,
 			params.name,
-			params.value AS MaxLimit,
-			params.groupname
+			params.value  AS MaxLimit,
+            params.groupname
 		FROM
 			(testrun
 		INNER JOIN testrun2params ON
@@ -329,9 +584,13 @@ With  GetReport AS (
 					OR (resulttype.Dim0 = 'Value')
 					)
 				THEN
-					result.dim0 
-			ELSE
-				resulttype.dim0 
+					COALESCE(result.Dim0, 'Result.dim0' )----cast (result.Dim0 as TEXT)
+			WHEN
+			   (resulttype.Dim0 = 'IPAddress')
+				THEN 
+				    'IPADR' ----cast ('IPADDRESS' as TEXT)
+            ELSE
+				COALESCE(resulttype.Dim0, 'NULL')
 		END ValueName,
 		result.dim0 as Signal,
 		--resulttype.Dim1 as ValueName,
@@ -345,12 +604,20 @@ With  GetReport AS (
 					OR (resulttype.Dim0 = 'Value')
 					)
 				THEN
-					result.dim1 
+					cast (result.dim1  as REAL)
+			WHEN
+			   (resulttype.Dim0 = 'IPAddress')
+				THEN 
+				    cast (0.0   as REAL)
+            WHEN ((resulttype.DIM0 = NULL)
+                 OR (result.Dim0 = NULL )) 
+                THEN 
+                  cast (0.0   as REAL)
 			ELSE
-				result.dim0 
+				COALESCE(result.Dim0, 0.0) --cast (result.dim0    as REAL)
 		END Value,
-		GetStepMinLimit.MinLimit,
-		GetStepMaxLimit.MaxLimit,
+		COALESCE(GetStepMinLimit.MinLimit, 0.0)  as MinLimit,
+		COALESCE(GetStepMaxLimit.MaxLimit, 0.0)  as MaxLimit,
 		GetStepVerdict.Verdict,
 		GetStepCheckLimit.CheckLimit,
 		resulttype.Dim2 as ValueName2,
@@ -407,18 +674,20 @@ Select
 	GetReport.StepName,
 	GetReport.ValueName,
 	Verdict,
-	avg(GetReport.Value) as Average,
-	Min(GetReport.Value) as Minimum,
-	Max(GetReport.Value) as Maximum,
+	COALESCE(avg(GetReport.Value),0.0) as Average,
+	cast (COALESCE(Min(GetReport.Value),0.0) as real) as Minimum,
+	cast (COALESCE(Max(GetReport.Value),0.0) as real) as Maximum,
 	variance(GetReport.Value) as Variance,
-	stdev(GetReport.Value) as StandardDeviation,
+	COALESCE(stdev(GetReport.Value),0.0) as StandardDeviation,
 	Count(GetReport.Value) as Count,
 	GetReport.MinLimit,
 	GetReport.MaxLimit,
-	min((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value)), (avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK,
-	Group_concat	(GetReport.Value, ', '),
+	--min((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value)), (avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK,
+	--((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value))) as CPK1, 
+    --((avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK2,
+    Group_concat	(GetReport.Value, ', '),
 	GetReport.SignalName,
-	GetReport.CheckLimit,
+	GetReport.CheckLimit ,
 	Group_concat(GetReport.TimeStamp, ', '),
 	Group_concat(GetReport.runid, ', ')
 FROM
@@ -434,15 +703,389 @@ Group BY
 --ORDER BY
 --	 GetReport.ValueName
 ";
-        private readonly string _statsBySerialSql = @"SELECT 'byserial' AS Report, variance(1.0) AS Variance, stdev(1.0) AS StdDev;";
-        public MainForm()
+        private readonly string _statsBySerialSql = @"
+-- Get Stats source
+With GetReport AS 
+	(
+	WITH RECURSIVE GetStepName as (
+		SELECT
+			testrun.RunID , 
+			TestRun.ParentRunID, 
+			testRun.PlanRunID ,
+			coalesce(params.Value, ' ') As ParentName,
+			'' as StepName,
+			0 as level
+		FROM
+			(testrun
+		INNER JOIN testrun2params ON
+			((testrun.RunID = testrun2params.Scope)
+				AND (testrun.runid = testrun2params.runid))
+		INNER JOIN params ON
+				testrun2params.paramid = params.paramid)
+		WHERE
+			((((params.Name)= 'Name')
+				AND ((params.GroupName)= '')))
+			AND testrun.ParentRunID is NULL
+		UNION
+		SELECT
+			e.RunID ,
+			e.ParentRunID,
+			e.PlanRunID,
+			eh.ParentName || '\' || eh.StepName ,
+			params.Value ,
+			eh.level + 1 as level
+		FROM
+			testrun e
+		join GetStepName eh ON
+			e.ParentRunID = eh.RunID
+		INNER JOIN testrun2params ON
+			( (e.runid = testrun2params.runid )
+				AND (e.runid = testrun2params.Scope))
+		INNER JOIN params ON
+				testrun2params.paramid = params.paramid
+		WHERE
+			((((params.Name)= 'Name')
+				AND ((params.GroupName)= '')))
+		), 
+	  GetPlanRuns AS 
+	  (
+		  -- GetPLanRunsbySerialNumber
+			-- returns GetPlanRuns.PlanRunNumber
+	  WITH	 GetStepName AS (
+		SELECT
+			testrun2params.scope,
+			testrun2params.runid,
+			params.name,
+			params.value AS StepName,
+			params.groupname
+		FROM
+			(testrun
+		INNER JOIN testrun2params ON
+			testrun.runid = testrun2params.runid)
+		INNER JOIN params ON
+			testrun2params.paramid = params.paramid
+		WHERE
+			(((testrun2params.scope)= testrun.runid)
+				And ((testrun2params.runid)= testrun.runid)
+					And ((params.name)= 'Step Name')))
+		,
+		GetVerdict AS
+			 (
+			SELECT
+				planrun.planrunnumber,
+				params.value as Verdict
+			FROM
+				planrun
+			INNER JOIN ((testrun
+			INNER JOIN testrun2params ON
+				testrun.runid = testrun2params.runid)
+			INNER JOIN params ON
+				testrun2params.paramid = params.paramid) ON
+				planrun.runid = testrun.runid
+			WHERE
+				(((testrun2params.scope)= testrun.runid)
+					And ((testrun2params.runid)= testrun.runid)
+						And ((params.name)= 'Verdict'))
+			),
+			 GetSerialNumber AS
+			 (
+				SELECT
+					testrun.runid,
+					testrun.parentrunid,
+					testrun2params.scope,
+					params.Value AS SerialNumber
+				FROM
+					(testrun
+				INNER JOIN testrun2params ON
+					(testrun.ParentRunID = testrun2params.Scope)
+						AND (testrun.runid = testrun2params.runid))
+				INNER JOIN params ON
+					testrun2params.paramid = params.paramid
+				WHERE
+					(((params.Name)= 'Name')
+						AND ((params.GroupName)= ''))
+			)
+			SELECT
+				planrun.planrunnumber,
+				result.dim0 as Signal,
+				result.dim1 as SerialNumber
+			FROM
+				(((((planrun
+			INNER JOIN testrun ON
+				planrun.runid = testrun.planrunid)
+			LEFT JOIN resultseries ON
+				testrun.runid = resultseries.runid)
+			LEFT JOIN result ON
+				resultseries.resultseriesid = result.resultseriesid)
+			LEFT JOIN resulttype ON
+				resultseries.resulttypeid = resulttype.resulttypeid)
+			LEFT JOIN GetStepName ON
+				testrun.runid = GetStepName.runid)
+			WHERE
+				( (GetStepName.StepName = 'User Input Test Info Step')
+					and (Signal = 'Serial Number')
+						and (SerialNumber =:serNum))
+			ORDER BY
+				planrun.PlanRunNumber
+	),
+	--Got plan runs
+	 GetStepMinLimit AS
+	(
+	SELECT
+		testrun2params.scope,
+		testrun2params.runid,
+		params.groupname,
+		params.name,
+		params.value AS MinLimit
+	FROM
+		(testrun
+	INNER JOIN testrun2params ON
+		testrun.runid = testrun2params.runid)
+	INNER JOIN params ON
+		testrun2params.paramid = params.paramid
+	WHERE
+		(((testrun2params.scope)= testrun.runid)
+			And ((testrun2params.runid)= testrun.runid)
+				And ((params.groupname)= 'Limits')
+					And ((params.name)= 'Minimum Value')))
+	,
+	 GetStepMaxLimit AS 
+	(
+	SELECT
+		testrun2params.scope,
+		testrun2params.runid,
+		params.name,
+		params.value AS MaxLimit,
+        params.groupname
+	FROM
+		(testrun
+	INNER JOIN testrun2params ON
+		testrun.runid = testrun2params.runid)
+	INNER JOIN params ON
+		testrun2params.paramid = params.paramid
+	WHERE
+		(((testrun2params.scope)= testrun.runid)
+			And ((testrun2params.runid)= testrun.runid)
+				And ((params.name)= 'Maximum Value')
+					And ((params.groupname)= 'Limits')))
+	,
+	GetStepVerdict AS (
+	SELECT
+		testrun2params.scope,
+		testrun2params.runid,
+		params.name,
+		params.value AS Verdict
+	FROM
+		(testrun
+	INNER JOIN testrun2params ON
+		testrun.runid = testrun2params.runid)
+	INNER JOIN params ON
+		testrun2params.paramid = params.paramid
+	WHERE
+		(((testrun2params.scope)= testrun.runid)
+			And ((testrun2params.runid)= testrun.runid)
+				And ((params.name)= 'Verdict')
+					And ((params.value)<> 'NotSet')))
+	,
+	GetStepTimestamp AS (
+	SELECT
+		testrun2params.scope,
+		testrun2params.runid,
+		params.name,
+		params.value AS [TimeStamp],
+		params.groupname
+	FROM
+		(testrun
+	INNER JOIN testrun2params ON
+		testrun.runid = testrun2params.runid)
+	INNER JOIN params ON
+		testrun2params.paramid = params.paramid
+	WHERE
+		(((testrun2params.scope)= testrun.runid)
+			And ((testrun2params.runid)= testrun.runid)
+				And ((params.name)= 'StartTime')))
+	,
+	 GetStepCheckLimit AS (
+	SELECT
+		testrun2params.scope,
+		testrun2params.runid,
+		params.name,
+		params.value AS CheckLimit,
+		params.groupname
+	FROM
+		(testrun
+	INNER JOIN testrun2params ON
+		testrun.runid = testrun2params.runid)
+	INNER JOIN params ON
+		testrun2params.paramid = params.paramid
+	WHERE
+		(((testrun2params.scope)= testrun.runid)
+			And ((testrun2params.runid)= testrun.runid)
+				And ((params.name)= 'Check Limits')
+					And ((params.groupname)= 'Limits')))
+	SELECT
+		GetPlanRuns.SerialNumber,
+		GetStepName.ParentName,
+		GetStepName.StepName,
+		GetStepTimestamp.TimeStamp,
+		resulttype.Dim0 as SignalName,
+		Case
+			WHEN 
+				((resulttype.Dim0 = 'Measurement')
+					OR (resulttype.Dim0 = 'Calibration')
+					Or (resulttype.Dim0 = 'Source')
+					OR (resulttype.Dim0 = 'Signal')
+					OR (resulttype.Dim0 = 'Value')
+					)
+				THEN
+					COALESCE(result.Dim0, 'Result.dim0' )----cast (result.Dim0 as TEXT)
+			WHEN
+			   (resulttype.Dim0 = 'IPAddress')
+				THEN 
+				    'IPADR' ----cast ('IPADDRESS' as TEXT)
+            ELSE
+				COALESCE(resulttype.Dim0, 'NULL')
+		END ValueName,
+		result.dim0 as Signal,
+		--resulttype.Dim1 as ValueName,
+		--result.dim1 as Value,
+		Case
+			WHEN 
+				((resulttype.Dim0 = 'Measurement')
+					OR (resulttype.Dim0 = 'Calibration')
+					Or (resulttype.Dim0 = 'Source')
+					OR (resulttype.Dim0 = 'Signal')
+					OR (resulttype.Dim0 = 'Value')
+					)
+				THEN
+					cast (result.dim1  as REAL)
+			WHEN
+			   (resulttype.Dim0 = 'IPAddress')
+				THEN 
+				    cast (0.0   as REAL)
+            WHEN ((resulttype.DIM0 = NULL)
+                 OR (result.Dim0 = NULL )) 
+                THEN 
+                  cast (0.0   as REAL)
+			ELSE
+				cast (COALESCE(result.Dim0, 0.0) as REAL) --cast (result.dim0    as REAL)
+		END Value,
+		COALESCE(GetStepMinLimit.MinLimit, 0.0)  as MinLimit,
+		COALESCE(GetStepMaxLimit.MaxLimit, 0.0)  as MaxLimit,
+		GetStepVerdict.Verdict,
+		GetStepCheckLimit.CheckLimit,
+		resulttype.Dim2 as ValueName2,
+		result.Dim2 as Value2,
+		resulttype.Dim3 as ValueName3,
+		result.Dim3 as Value3,
+		planrun.planrunnumber,
+		testrun.runid
+	FROM
+		(((((((((((
+		GetPlanRuns
+		LEFT Join planrun ON
+			planrun.PlanRunNumber = GetPlanRuns.PlanRunNumber)
+		LEFT JOIN testrun ON
+			planrun.runid = testrun.planrunid)
+		LEFT JOIN resultseries ON
+			testrun.runid = resultseries.runid)
+		LEFT JOIN result ON
+			resultseries.resultseriesid = result.resultseriesid)
+		LEFT JOIN resulttype ON
+			resultseries.resulttypeid = resulttype.resulttypeid)
+		LEFT JOIN GetStepName ON
+			testrun.runid = GetStepName.runid)
+		LEFT JOIN GetStepMinLimit ON
+			testrun.runid = GetStepMinLimit.runid)
+		LEFT JOIN GetStepMaxLimit ON
+			testrun.runid = GetStepMaxLimit.runid)
+		LEFT JOIN GetStepVerdict ON
+			testrun.runid = GetStepVerdict.runid)
+		LEFT JOIN GetStepTimestamp ON
+			testrun.runid = GetStepTimestamp.runid)
+		LEFT JOIN GetStepCheckLimit ON
+			testrun.RunID = GetStepCheckLimit.runid)
+	WHERE
+		((SignalName = 'Measurement')
+			OR (SignalName = 'Calibration')
+			Or (SignalName = 'Source')
+			--AND (CheckLimit = TRUE)
+			)
+	ORDER BY
+		StepName
+),
+
+	 GetScriptName AS
+		 (
+		SELECT
+			testrun.planrunid,
+			testrun.runid,
+			testrun.parentrunid,
+			testrun2params.scope,
+			params.Value AS ScriptName
+		FROM
+			(testrun
+		INNER JOIN testrun2params ON
+			(testrun.PlanRunID = testrun2params.Scope)
+				AND (testrun.runid = testrun2params.runid))
+		INNER JOIN params ON
+			testrun2params.paramid = params.paramid
+		WHERE
+			(((params.Name)= 'Name')
+				AND ((params.GroupName)= ''))
+		)
+Select
+	COALESCE(GetScriptName.ScriptName, ' ') as Scriptname, 
+	COALESCE(GetReport.SerialNumber, ' ') as SerialNumber,
+	COALESCE(GetReport.ParentName, ' ') as ParentName, 
+	COALESCE(GetReport.StepName, ' ') as StepName,
+	COALESCE(GetReport.ValueName, ' ') as ValueName,
+	COALESCE(GetReport.Signal, ' ') as Signal,
+	Verdict,
+	COALESCE(avg(GetReport.Value),0.0) as Average,
+	cast (COALESCE(Min(GetReport.Value),0.0) as real) as Minimum,
+	cast (COALESCE(Max(GetReport.Value),0.0) as real) as Maximum,
+	COALESCE(variance(GetReport.Value), 0.0) as Variance,
+	COALESCE(stdev(GetReport.Value),0.0) as StandardDeviation,
+	Count(GetReport.Value) as Count,
+	COALESCE(GetReport.MinLimit, 0.0)  as MinLimit,
+	COALESCE(GetReport.MaxLimit, 0.0)  as MaxLimit,
+	---GetReport.MinLimit,
+	---GetReport.MaxLimit,
+	--min((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value)), (avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK,
+	--((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value))) as CPK1, 
+    --((avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK2,
+    ---Group_concat	(GetReport.Value, ', '),
+	GetReport.SignalName,
+	GetReport.CheckLimit 
+	--Group_concat(GetReport.TimeStamp, ', '),
+	--Group_concat(GetReport.runid, ', ')
+FROM
+	(((planrun
+	INNER JOIN testrun ON
+		planrun.runid = testrun.planrunid)
+	Inner JOIN GetScriptName ON
+		testrun.runid = GetScriptName.runid)
+	LEFT JOIN GetReport ON
+		GetReport.runid = testrun.runid)
+Group BY
+	GetReport.ParentName , GetReport.StepName , GetReport.ValueName, GetReport.Verdict
+--ORDER BY
+--	 GetReport.ValueName
+";
+		
+	public MainForm()
         {
             InitializeComponent(); dgvOverview.AutoGenerateColumns = true;
-            dgvDetails.AutoGenerateColumns = true; dgvStatsAll.AutoGenerateColumns = true;
+            dgvDetails.AutoGenerateColumns = true; 
+            dgvStatsAll.AutoGenerateColumns = true;
             dgvStatsSerial.AutoGenerateColumns = true;
             cboVerdict.Items.AddRange(new object[] { "(Any)", "Pass", "Fail", "NotSet" });
-            cboVerdict.SelectedIndex = 0; cboStatus.Items.Add("(Any)");
-            cboStatus.SelectedIndex = 0; dtFrom.ShowCheckBox = true;
+            cboVerdict.SelectedIndex = 0;
+            cboStatus.Items.Add("(Any)");
+            cboStatus.SelectedIndex = 0; 
+            dtFrom.ShowCheckBox = true;
+            dtFrom.Value = new DateTime(2015,1,1);
             dtTo.ShowCheckBox = true; LoadSettings();
             UpdateUiState();
         }
@@ -562,14 +1205,69 @@ Group BY
             await conn.OpenAsync(); RegisterCustomFunctions(conn); 
             using var cmd = new SqliteCommand(sql, conn); 
             configure?.Invoke(cmd); 
-            using var reader = await cmd.ExecuteReaderAsync(); 
-            table.Load(reader); return table;
+            //cmd.
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            table.BeginLoadData();
+            table.Constraints.Clear();
+            table.PrimaryKey = null;    
+
+            table.Load(reader); 
+            table.EndLoadData();
+
+            return table;
         }
-/*        private string BuildFilteredOverviewWrapperSql()
+        private async Task<DataTable> ExecuteDetailQueryAsync(string sql, Action<SqliteCommand> configure)
         {
-            return "SELECT * FROM (" + _overviewSql + ") ov WHERE 1=1\n{FILTERS}\nORDER BY ov.PlanRunNumber, ov.TimeStamp";
+            DataTable table = new DataTable();
+            using var conn = new SqliteConnection(ConnectionString);
+
+            //   SQLiteFunction.RegisterFunction(
+            //       typeof(TestRunViewerSqlite_Pro.Data.SqliteFunctions.VarianceAggregate));
+
+            await conn.OpenAsync(); RegisterCustomFunctions(conn);
+            using var cmd = new SqliteCommand(sql, conn);
+            configure?.Invoke(cmd);
+            //cmd.
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            //            table.PrimaryKey = null;
+            //table.PrimaryKey = [1, 2, 3, 4, 5];
+            /*
+                        // 1️⃣ Define schema FIRST
+                        table.Columns.Add("RunID", typeof(long));
+                        table.Columns.Add("TimeStamp", typeof(string));
+                        table.Columns.Add("Signal", typeof(string));
+                        table.Columns.Add("Value", typeof(double));
+
+                        // 2️⃣ Set composite PrimaryKey BEFORE loading
+                        table.PrimaryKey = new[]
+                        {
+                            table.Columns["RunID"],
+                            table.Columns["TimeStamp"],
+                            table.Columns["Signal"]
+                        };
+            */
+            table.BeginLoadData();
+            table.Constraints.Clear();
+            table.Columns.Add("PrimaryKey", typeof(string));
+            table.PrimaryKey = new[]
+            {
+                            table.Columns["PrimaryKey"]
+            };
+            //table.PrimaryKey = null;
+
+            table.Load(reader);
+            table.EndLoadData();
+
+            return table;
         }
-*/        private string BuildFilteredOverviewWrapperSql() { return "SELECT * FROM (" + _overviewSqlSN + ") ov WHERE 1=1\n{FILTERS}\nORDER BY ov.PlanRunNumber, ov.TimeStamp"; }
+        /*        private string BuildFilteredOverviewWrapperSql()
+                {
+                    return "SELECT * FROM (" + _overviewSql + ") ov WHERE 1=1\n{FILTERS}\nORDER BY ov.PlanRunNumber, ov.TimeStamp";
+                }
+        */
+        private string BuildFilteredOverviewWrapperSql() { return "SELECT * FROM (" + _overviewSqlSN + ") ov WHERE 1=1\n{FILTERS}\nORDER BY ov.PlanRunNumber, ov.TimeStamp"; }
 
         private async Task PopulateStatusFilterAsync()
         {
@@ -600,7 +1298,35 @@ ORDER BY Status";
                 lblStatusFilter.Visible = cboStatus.Visible = false;
             }
         }
-        private void AddOverviewFilterParameters(SqliteCommand cmd) { cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", " {FILTERS} "); if (!string.IsNullOrWhiteSpace(txtPlanRunName.Text)) { cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.PlanRunName LIKE @name\n{FILTERS}"); cmd.Parameters.Add(new SqliteParameter("@name", "%" + txtPlanRunName.Text.Trim() + "%")); } if (cboVerdict.SelectedIndex > 0) { cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.Verdict = @verdict\n{FILTERS}"); cmd.Parameters.Add(new SqliteParameter("@verdict", Convert.ToString(cboVerdict.SelectedItem))); } if (cboStatus.Visible && cboStatus.SelectedIndex > 0) { cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.Status = @status\n{FILTERS}"); cmd.Parameters.Add(new SqliteParameter("@status", Convert.ToString(cboStatus.SelectedItem))); } if (dtFrom.Checked) { cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.TimeStamp >= @from\n{FILTERS}"); cmd.Parameters.Add(new SqliteParameter("@from", dtFrom.Value.ToString("yyyy-MM-dd HH:mm:ss"))); } if (dtTo.Checked) { cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.TimeStamp <= @to\n{FILTERS}"); cmd.Parameters.Add(new SqliteParameter("@to", dtTo.Value.ToString("yyyy-MM-dd HH:mm:ss"))); } cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", string.Empty); }
+        private void AddOverviewFilterParameters(SqliteCommand cmd) 
+        { 
+            cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", " {FILTERS} "); 
+            if (!string.IsNullOrWhiteSpace(txtPlanRunName.Text)) 
+            { 
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.PlanRunName LIKE @name\n{FILTERS}"); 
+                cmd.Parameters.Add(new SqliteParameter("@name", "%" + txtPlanRunName.Text.Trim() + "%")); 
+            } 
+            if (cboVerdict.SelectedIndex > 0) 
+            { 
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.Verdict = @verdict\n{FILTERS}"); 
+                cmd.Parameters.Add(new SqliteParameter("@verdict", Convert.ToString(cboVerdict.SelectedItem))); 
+            } 
+            if (cboStatus.Visible && cboStatus.SelectedIndex > 0) 
+            { 
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.Status = @status\n{FILTERS}"); 
+                cmd.Parameters.Add(new SqliteParameter("@status", Convert.ToString(cboStatus.SelectedItem))); 
+            } 
+            if (dtFrom.Checked) 
+            { 
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.TimeStamp >= @from\n{FILTERS}"); 
+                cmd.Parameters.Add(new SqliteParameter("@from", dtFrom.Value.ToString("yyyy-MM-dd HH:mm:ss"))); 
+            } 
+            if (dtTo.Checked) 
+            { 
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.TimeStamp <= @to\n{FILTERS}"); 
+                cmd.Parameters.Add(new SqliteParameter("@to", dtTo.Value.ToString("yyyy-MM-dd HH:mm:ss"))); 
+            } 
+            cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", string.Empty); }
 /*
         private void AddOverviewFilterParameters(SqliteCommand cmd)
         {
@@ -683,7 +1409,10 @@ ORDER BY Status";
                 {
                     dgvOverview.ClearSelection();
                     dgvOverview.Rows[0].Selected = true;
-                    await LoadSelectedDetailsAsync();
+                    dgvDetails.DataSource = null;
+
+                    await LoadSelectedSummaryAsync();
+                    //await LoadSelectedDetailsAsync();
                 }
                 else
                 {
@@ -748,6 +1477,78 @@ ORDER BY Status";
                 : null;
         }
 
+        private async Task LoadSelectedSummaryAsync()
+        {
+            if (dgvOverview.CurrentRow == null)
+            {
+                dgvDetails.DataSource = null;
+                return;
+            }
+
+            if (cmbMapPlanRunNumber.SelectedItem is null)
+            {
+                lblStatus.Text = "Select the PlanRunNumber column mapping first.";
+                return;
+            }
+
+            var columnName = cmbMapPlanRunNumber.SelectedItem.ToString();
+            var rawValue = GetSelectedOverviewCell(columnName!);
+			var sercolname = "Value";
+			var SerialNmbr = GetSelectedOverviewCell(sercolname!);
+			txtSerial.Text = $"{SerialNmbr}";
+            if (rawValue is null || rawValue == DBNull.Value)
+            {
+                lblStatus.Text = $"No value in column '{columnName}'.";
+                dgvDetails.DataSource = null;
+                return;
+            }
+
+            if (!long.TryParse(Convert.ToString(rawValue), out var planRunNumber))
+            {
+                lblStatus.Text =
+                    $"Selected PlanRunNumber ('{columnName}') is not numeric.";
+                dgvDetails.DataSource = null;
+                return;
+            }
+
+            ToggleUi(false);
+            lblStatus.Text =
+                $"Loading Summary for PlanRunNumber {planRunNumber}...";
+
+            try
+            {
+
+
+                var qstr = string.Format($"{_summarySql} {planRunNumber});");
+                var table = await ExecuteQueryAsync(
+                    //qstr, //null); //, //
+                    _summarySql,
+                    cmd => cmd.Parameters.AddWithValue(
+                        "@PlanRunNumber",
+                        planRunNumber));
+
+                dgvSummary.DataSource = table;
+                lblStatus.Text =
+                    $"Loaded {table.Rows.Count} summary rows for PlanRunNumber {planRunNumber}.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    this,
+                    ex.Message,
+                    "Error Loading Summary",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+
+                lblStatus.Text = "Failed to load Summary.";
+            }
+            finally
+            {
+                ToggleUi(true);
+                UpdateUiState();
+            }
+        }
+
         private async Task LoadSelectedDetailsAsync()
         {
             if (dgvOverview.CurrentRow == null)
@@ -789,7 +1590,7 @@ ORDER BY Status";
                 
 
                 var qstr = string.Format($"{_detailsSql} {planRunNumber});");
-                var table = await ExecuteQueryAsync(
+                var table = await ExecuteDetailQueryAsync(
                     //qstr, //null); //, //
                     _detailsSql, 
                     cmd => cmd.Parameters.AddWithValue(
@@ -823,9 +1624,11 @@ ORDER BY Status";
             if (!File.Exists(_dbPath))
                 return;
 
-            ToggleUi(false);
             lblStatus.Text = "Loading stats (all runs)...";
-
+            ToggleUi(true);
+            UpdateUiState();
+            ToggleUi(false);
+            
             try
             {
                 var table = await ExecuteQueryAsync(_statsAllSql, null);
@@ -1028,7 +1831,17 @@ ORDER BY Status";
         {
             if (dgvOverview.Focused || dgvOverview.IsHandleCreated)
             {
+                //await LoadSelectedDetailsAsync();
+                dgvDetails.DataSource = null;
+                await LoadSelectedSummaryAsync();
+            }
+        }
+        private async void btnGetDetails_Click(object sender, EventArgs e)
+        {
+            if (dgvOverview.Focused || dgvOverview.IsHandleCreated)
+            {
                 await LoadSelectedDetailsAsync();
+                await LoadSelectedSummaryAsync();
             }
         }
         private async void btnApplyFilters_Click(object sender, EventArgs e)
