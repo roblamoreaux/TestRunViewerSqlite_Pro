@@ -342,7 +342,7 @@ SELECT
 	GetParentName.ParentName as PlanRunName,
 	planrun.planrunnumber,
 	result.dim0 as Signal,
-	result.dim1 as Value,
+	result.dim1 as SerialNumber,
 	GetVerdict.Verdict,
 	testrun.runid
 FROM
@@ -364,7 +364,7 @@ LEFT JOIN resulttype ON
 JOIN GetStepName ON
 	testrun.runid = GetStepName.runid)
 WHERE
-	( (GetStepName.StepName = 'User Input Test Info Step')
+	( ((GetStepName.StepName = 'User Input Test Info Step') or (GetStepName.StepName = 'Factory Data Test Info Step'))
 		and (Signal = 'Serial Number')
 )
 ORDER BY
@@ -397,7 +397,7 @@ GetVerdict AS (
   INNER JOIN params ON testrun2params.paramid = params.paramid
   WHERE testrun2params.scope = testrun.runid AND testrun2params.runid = testrun.runid AND params.name = 'Verdict'
 )
-SELECT GetStepTimestamp.TimeStamp, GetParentName.ParentName as PlanRunName, planrun.PlanRunNumber, planrun.*, GetVerdict.Verdict
+SELECT GetStepTimestamp.TimeStamp, GetParentName.ParentName as PlanRunName, planrun.PlanRunNumber, GetVerdict.Verdict, planrun.runid
 FROM planrun
 INNER JOIN testrun ON planrun.runid = testrun.planrunid
 LEFT  JOIN GetVerdict ON planrun.planrunnumber = GetVerdict.planrunnumber
@@ -1262,12 +1262,12 @@ Group BY
 
             return table;
         }
-        /*        private string BuildFilteredOverviewWrapperSql()
-                {
-                    return "SELECT * FROM (" + _overviewSql + ") ov WHERE 1=1\n{FILTERS}\nORDER BY ov.PlanRunNumber, ov.TimeStamp";
-                }
-        */
-        private string BuildFilteredOverviewWrapperSql() { return "SELECT * FROM (" + _overviewSqlSN + ") ov WHERE 1=1\n{FILTERS}\nORDER BY ov.PlanRunNumber, ov.TimeStamp"; }
+        private string BuildFilteredOverviewWrapperSql()
+            {
+                return "SELECT * FROM (" + _overviewSql + ") ov WHERE 1=1\n{FILTERS}\nORDER BY ov.PlanRunNumber, ov.TimeStamp";
+            }
+       
+        private string BuildFilteredOverviewWrapperSqlSN() { return "SELECT * FROM (" + _overviewSqlSN + ") ov WHERE 1=1\n{FILTERS}\nORDER BY ov.PlanRunNumber, ov.TimeStamp"; }
 
         private async Task PopulateStatusFilterAsync()
         {
@@ -1396,9 +1396,9 @@ ORDER BY Status";
             try
             {
                 await PopulateStatusFilterAsync();
-
-                var sql = BuildFilteredOverviewWrapperSql();
-                var table = await ExecuteQueryAsync(sql, AddOverviewFilterParameters);
+				var sql =  (chkWithSerialNumber.Checked) ?
+	                BuildFilteredOverviewWrapperSqlSN() : BuildFilteredOverviewWrapperSql();
+				var table = await ExecuteQueryAsync(sql, AddOverviewFilterParameters);
 
                 dgvOverview.DataSource = table;
                 lblStatus.Text = $"Loaded {table.Rows.Count} rows.";
@@ -1493,7 +1493,7 @@ ORDER BY Status";
 
             var columnName = cmbMapPlanRunNumber.SelectedItem.ToString();
             var rawValue = GetSelectedOverviewCell(columnName!);
-			var sercolname = "Value";
+			var sercolname = "SerialNumber";
 			var SerialNmbr = GetSelectedOverviewCell(sercolname!);
 			txtSerial.Text = $"{SerialNmbr}";
             if (rawValue is null || rawValue == DBNull.Value)

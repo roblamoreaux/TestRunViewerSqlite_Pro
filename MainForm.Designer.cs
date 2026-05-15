@@ -5,180 +5,584 @@ namespace TestRunViewerSqlite
     partial class MainForm
     {
         private TextBox txtPlanRunName;
-        private Button btnOpenDb; private TextBox txtDbPath; private Button btnLoad;
-        private DataGridView dgvOverview; private DataGridView dgvDetails;
+        private Button btnOpenDb; 
+        private TextBox txtDbPath; 
+        private Button btnLoad;
+        private DataGridView dgvOverview; 
+        private DataGridView dgvDetails;
         private DataGridView dgvSummary;
-        private DataGridView dgvStatsAll; private DataGridView dgvStatsSerial;
-        private ComboBox cboVerdict; private ComboBox cboStatus; private DateTimePicker dtFrom; private DateTimePicker dtTo;
-        private ComboBox cmbMapPlanRunNumber; private TextBox txtSerial;
-        private Button btnExportOverview; private Button btnExportDetails; private Button btnExportStatsAll; private Button btnExportStatsSerial;
+        private DataGridView dgvStatsAll;
+        private DataGridView dgvStatsSerial;
+        private ComboBox cboVerdict; 
+        private ComboBox cboStatus; 
+        private DateTimePicker dtFrom; 
+        private DateTimePicker dtTo;
+        private ComboBox cmbMapPlanRunNumber; 
+        private TextBox txtSerial;
+        private Button btnExportOverview; 
+        private Button btnExportDetails; 
+        private Button btnExportStatsAll; 
+        private Button btnExportStatsSerial;
         private Button btnApplyFilters;
+        private CheckBox chkWithSerialNumber;
         private Button btnGetDetails;
-        private Button btnLoadStatsAll; private Button btnLoadStatsSerial;
-        private ToolStripStatusLabel lblStatus; private Label lblStatusFilter;
-        private GroupBox grpFilters; private GroupBox grpMapping; private GroupBox grpStats; private StatusStrip statusStrip1;
+        private Button btnLoadStatsAll; 
+        private Button btnLoadStatsSerial;
+        private ToolStripStatusLabel lblStatus;
+        private Label lblStatusFilter;
+        private GroupBox grpFilters; 
+        private GroupBox grpMapping; 
+        private GroupBox grpStats; 
+        private StatusStrip statusStrip1;
         private void InitializeComponent()
         {
-            this.btnOpenDb = new Button(); 
-            this.txtDbPath = new TextBox(); 
-            this.btnLoad = new Button();
-            this.dgvOverview = new DataGridView(); 
-            this.dgvDetails = new DataGridView();
-            this.dgvSummary = new DataGridView();
-            this.dgvStatsAll = new DataGridView(); 
-            this.dgvStatsSerial = new DataGridView();
-            this.cboVerdict = new ComboBox(); 
-            this.cboStatus = new ComboBox(); 
-            this.dtFrom = new DateTimePicker(); 
-            this.dtTo = new DateTimePicker();
-            this.cmbMapPlanRunNumber = new ComboBox(); 
-            this.txtSerial = new TextBox();
-            this.btnExportOverview = new Button(); 
-            this.btnExportDetails = new Button(); 
-            this.btnExportStatsAll = new Button(); 
-            this.btnExportStatsSerial = new Button();
-            this.btnApplyFilters = new Button(); 
-            this.btnGetDetails = new Button();
-            this.btnLoadStatsAll = new Button();
-            this.btnLoadStatsSerial = new Button();
-            this.lblStatusFilter = new Label(); 
-            this.grpFilters = new GroupBox(); 
-            this.grpMapping = new GroupBox(); 
-            this.grpStats = new GroupBox(); 
-            this.statusStrip1 = new StatusStrip(); 
-            this.lblStatus = new ToolStripStatusLabel();
-            var split = new SplitContainer(); 
-            var tabs = new TabControl();
-            var tabSummary = new TabPage("Summary");
-            var tabDetails = new TabPage("Details"); 
-            var tabAll = new TabPage("Stats (All)"); 
-            var tabSer = new TabPage("Stats (By Serial)"); 
-            var pnlSer = new Panel(); 
-            var lblSerial = new Label();
-            this.SuspendLayout();
-            // Top bar
-            this.btnOpenDb.Text = "Open DB..."; this.btnOpenDb.SetBounds(12,12,120,32); this.btnOpenDb.Click += btnOpenDb_Click;
-            this.txtDbPath.ReadOnly = true; this.txtDbPath.SetBounds(138,14,500,28);
-            this.btnLoad.Text = "Load Overview"; this.btnLoad.SetBounds(650,12,150,32); this.btnLoad.Click += btnLoad_Click;
-            // Filters group
-            this.grpFilters.Text = "Filters"; this.grpFilters.SetBounds(12,52,988,70);
-            this.cboVerdict.DropDownStyle = ComboBoxStyle.DropDownList; this.cboVerdict.SetBounds(10,34,100,28);
-            var lblVerdict = new Label(){Text="Verdict:", AutoSize=true}; lblVerdict.SetBounds(10,10,60,20);
-            this.grpFilters.Controls.Add(lblVerdict); this.grpFilters.Controls.Add(this.cboVerdict);
-            this.lblStatusFilter.Text = "Status:"; this.lblStatusFilter.AutoSize = true; this.lblStatusFilter.SetBounds(120,10,60,20);
-            this.cboStatus.DropDownStyle = ComboBoxStyle.DropDownList; this.cboStatus.SetBounds(120,34,100,28);
-            this.grpFilters.Controls.Add(this.lblStatusFilter); this.grpFilters.Controls.Add(this.cboStatus);
-            var lblFrom = new Label(){Text="From:", AutoSize=true}; lblFrom.SetBounds(230,10,60,20);
-            this.dtFrom.Format = DateTimePickerFormat.Custom; 
-            this.dtFrom.CustomFormat = "yyyy-MM-dd HH:mm:ss"; 
-            this.dtFrom.SetBounds(230,34,180,28);
-            var lblTo = new Label(){Text="To:", AutoSize=true}; lblTo.SetBounds(420,10,60,20);
-            this.dtTo.Format = DateTimePickerFormat.Custom; this.dtTo.CustomFormat = "yyyy-MM-dd HH:mm:ss"; 
-            this.dtTo.SetBounds(420,34,180,28);
-            this.btnApplyFilters.Text = "Apply"; 
-            this.btnApplyFilters.SetBounds(610,32,80,30); 
-            this.btnApplyFilters.Click += btnApplyFilters_Click;
-            this.grpFilters.Controls.AddRange(new Control[]{lblFrom, this.dtFrom, lblTo, this.dtTo, this.btnApplyFilters});
-            // Mapping group
-            this.grpMapping.Text = "Column Mapping"; this.grpMapping.SetBounds(12,138,988,56);
-            var lblMap = new Label(){Text="PlanRunNumber column:", AutoSize=true}; lblMap.SetBounds(10,25,180,20);
-            this.cmbMapPlanRunNumber.DropDownStyle = ComboBoxStyle.DropDownList; this.cmbMapPlanRunNumber.SetBounds(200,20,570,28);
-            this.grpMapping.Controls.AddRange(new Control[]{lblMap, this.cmbMapPlanRunNumber});
-            // Stats group
-            this.grpStats.Text = "Statistics"; this.grpStats.SetBounds(12,196,888,56);
-            this.btnLoadStatsAll.Text = "Load Stats (All)"; 
-            this.btnLoadStatsAll.SetBounds(12,20,150,30); 
-            this.btnLoadStatsAll.Click += btnLoadStatsAll_Click;
-            this.btnExportOverview.Text = "Export Overview..."; 
-            this.btnExportOverview.SetBounds(620,20,150,30); 
-            this.btnExportOverview.Click += btnExportOverview_Click;
-            // Get Details
-            this.btnGetDetails.Text = "Load Details";
-            this.btnGetDetails.SetBounds(162, 20, 150, 30);
-            this.btnGetDetails.Click += btnGetDetails_Click;
-            //this.grpFilters.Controls.AddRange(new Control[] { lblFrom, this.dtFrom, lblTo, this.dtTo, this.btnGetDetails });
-            this.grpStats.Controls.AddRange(new Control[] { this.btnLoadStatsAll, this.btnGetDetails, this.btnExportOverview });
-            // Split bottom
-            split.SetBounds(12,258,988,640); 
-            split.Orientation = Orientation.Horizontal; 
-            split.SplitterDistance=210;
-            split.Anchor = AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;// |AnchorStyles.Bottom;
-            this.dgvOverview.ReadOnly=true; 
-            this.dgvOverview.SelectionMode = DataGridViewSelectionMode.FullRowSelect; 
-            this.dgvOverview.Dock = DockStyle.Fill; 
-            this.dgvOverview.SelectionChanged += dgvOverview_SelectionChanged;
-            var containerTop = new Panel(){Dock=DockStyle.Fill}; containerTop.Controls.Add(this.dgvOverview);
+            btnOpenDb = new Button();
+            txtDbPath = new TextBox();
+            btnLoad = new Button();
+            dgvOverview = new DataGridView();
+            dgvDetails = new DataGridView();
+            dgvSummary = new DataGridView();
+            dgvStatsAll = new DataGridView();
+            dgvStatsSerial = new DataGridView();
+            cboVerdict = new ComboBox();
+            cboStatus = new ComboBox();
+            dtFrom = new DateTimePicker();
+            dtTo = new DateTimePicker();
+            cmbMapPlanRunNumber = new ComboBox();
+            txtSerial = new TextBox();
+            btnExportOverview = new Button();
+            btnExportDetails = new Button();
+            btnExportStatsAll = new Button();
+            btnExportStatsSerial = new Button();
+            btnApplyFilters = new Button();
+            chkWithSerialNumber = new CheckBox();
+            btnGetDetails = new Button();
+            btnLoadStatsAll = new Button();
+            btnLoadStatsSerial = new Button();
+            lblStatusFilter = new Label();
+            grpFilters = new GroupBox();
+            lblVerdict = new Label();
+            lblFrom = new Label();
+            lblTo = new Label();
+            grpMapping = new GroupBox();
+            lblMap = new Label();
+            grpStats = new GroupBox();
+            statusStrip1 = new StatusStrip();
+            lblStatus = new ToolStripStatusLabel();
+            split = new SplitContainer();
+            containerTop = new Panel();
+            tabs = new TabControl();
+            tabSummary = new TabPage();
+            tabDetails = new TabPage();
+            tabAll = new TabPage();
+            tabSer = new TabPage();
+            pnlSer1 = new Panel();
+            lblSerial = new Label();
+            pnlSer = new Panel();
+            txtPlanRunName = new TextBox();
+            ((System.ComponentModel.ISupportInitialize)dgvOverview).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvDetails).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvSummary).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvStatsAll).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvStatsSerial).BeginInit();
+            grpFilters.SuspendLayout();
+            grpMapping.SuspendLayout();
+            grpStats.SuspendLayout();
+            statusStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)split).BeginInit();
+            split.Panel1.SuspendLayout();
+            split.Panel2.SuspendLayout();
+            split.SuspendLayout();
+            containerTop.SuspendLayout();
+            tabs.SuspendLayout();
+            tabSummary.SuspendLayout();
+            tabDetails.SuspendLayout();
+            tabAll.SuspendLayout();
+            tabSer.SuspendLayout();
+            pnlSer1.SuspendLayout();
+            SuspendLayout();
+            // 
+            // btnOpenDb
+            // 
+            btnOpenDb.Location = new Point(12, 12);
+            btnOpenDb.Name = "btnOpenDb";
+            btnOpenDb.Size = new Size(120, 32);
+            btnOpenDb.TabIndex = 0;
+            btnOpenDb.Text = "Open DB...";
+            btnOpenDb.Click += btnOpenDb_Click;
+            // 
+            // txtDbPath
+            // 
+            txtDbPath.Location = new Point(138, 14);
+            txtDbPath.Name = "txtDbPath";
+            txtDbPath.ReadOnly = true;
+            txtDbPath.Size = new Size(500, 27);
+            txtDbPath.TabIndex = 1;
+            // 
+            // btnLoad
+            // 
+            btnLoad.Location = new Point(650, 12);
+            btnLoad.Name = "btnLoad";
+            btnLoad.Size = new Size(150, 32);
+            btnLoad.TabIndex = 2;
+            btnLoad.Text = "Load Overview";
+            btnLoad.Click += btnLoad_Click;
+            // 
+            // dgvOverview
+            // 
+            dgvOverview.ColumnHeadersHeight = 29;
+            dgvOverview.Dock = DockStyle.Left;
+            dgvOverview.Location = new Point(0, 0);
+            dgvOverview.Name = "dgvOverview";
+            dgvOverview.ReadOnly = true;
+            dgvOverview.RowHeadersWidth = 51;
+            dgvOverview.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvOverview.Size = new Size(888, 207);
+            dgvOverview.TabIndex = 0;
+            dgvOverview.SelectionChanged += dgvOverview_SelectionChanged;
+            // 
+            // dgvDetails
+            // 
+            dgvDetails.ColumnHeadersHeight = 29;
+            dgvDetails.Dock = DockStyle.Left;
+            dgvDetails.Location = new Point(0, 30);
+            dgvDetails.Name = "dgvDetails";
+            dgvDetails.ReadOnly = true;
+            dgvDetails.RowHeadersWidth = 51;
+            dgvDetails.Size = new Size(988, 363);
+            dgvDetails.TabIndex = 0;
+            // 
+            // dgvSummary
+            // 
+            dgvSummary.ColumnHeadersHeight = 29;
+            dgvSummary.Dock = DockStyle.Left;
+            dgvSummary.Location = new Point(0, 0);
+            dgvSummary.Name = "dgvSummary";
+            dgvSummary.ReadOnly = true;
+            dgvSummary.RowHeadersWidth = 51;
+            dgvSummary.Size = new Size(988, 393);
+            dgvSummary.TabIndex = 0;
+            // 
+            // dgvStatsAll
+            // 
+            dgvStatsAll.ColumnHeadersHeight = 29;
+            dgvStatsAll.Dock = DockStyle.Left;
+            dgvStatsAll.Location = new Point(0, 30);
+            dgvStatsAll.Name = "dgvStatsAll";
+            dgvStatsAll.ReadOnly = true;
+            dgvStatsAll.RowHeadersWidth = 51;
+            dgvStatsAll.Size = new Size(988, 363);
+            dgvStatsAll.TabIndex = 0;
+            // 
+            // dgvStatsSerial
+            // 
+            dgvStatsSerial.ColumnHeadersHeight = 29;
+            dgvStatsSerial.Dock = DockStyle.Left;
+            dgvStatsSerial.Location = new Point(0, 0);
+            dgvStatsSerial.Name = "dgvStatsSerial";
+            dgvStatsSerial.ReadOnly = true;
+            dgvStatsSerial.RowHeadersWidth = 51;
+            dgvStatsSerial.Size = new Size(988, 393);
+            dgvStatsSerial.TabIndex = 0;
+            // 
+            // cboVerdict
+            // 
+            cboVerdict.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboVerdict.Location = new Point(10, 34);
+            cboVerdict.Name = "cboVerdict";
+            cboVerdict.Size = new Size(100, 28);
+            cboVerdict.TabIndex = 1;
+            // 
+            // cboStatus
+            // 
+            cboStatus.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboStatus.Location = new Point(120, 34);
+            cboStatus.Name = "cboStatus";
+            cboStatus.Size = new Size(100, 28);
+            cboStatus.TabIndex = 3;
+            // 
+            // dtFrom
+            // 
+            dtFrom.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+            dtFrom.Format = DateTimePickerFormat.Custom;
+            dtFrom.Location = new Point(230, 34);
+            dtFrom.Name = "dtFrom";
+            dtFrom.Size = new Size(180, 27);
+            dtFrom.TabIndex = 5;
+            // 
+            // dtTo
+            // 
+            dtTo.CustomFormat = "yyyy-MM-dd HH:mm:ss";
+            dtTo.Format = DateTimePickerFormat.Custom;
+            dtTo.Location = new Point(420, 34);
+            dtTo.Name = "dtTo";
+            dtTo.Size = new Size(180, 27);
+            dtTo.TabIndex = 8;
+            // 
+            // cmbMapPlanRunNumber
+            // 
+            cmbMapPlanRunNumber.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbMapPlanRunNumber.Location = new Point(200, 20);
+            cmbMapPlanRunNumber.Name = "cmbMapPlanRunNumber";
+            cmbMapPlanRunNumber.Size = new Size(570, 28);
+            cmbMapPlanRunNumber.TabIndex = 1;
+            // 
+            // txtSerial
+            // 
+            txtSerial.Location = new Point(60, 6);
+            txtSerial.Name = "txtSerial";
+            txtSerial.Size = new Size(150, 27);
+            txtSerial.TabIndex = 1;
+            // 
+            // btnExportOverview
+            // 
+            btnExportOverview.Location = new Point(620, 20);
+            btnExportOverview.Name = "btnExportOverview";
+            btnExportOverview.Size = new Size(150, 30);
+            btnExportOverview.TabIndex = 2;
+            btnExportOverview.Text = "Export Overview...";
+            btnExportOverview.Click += btnExportOverview_Click;
+            // 
+            // btnExportDetails
+            // 
+            btnExportDetails.Dock = DockStyle.Top;
+            btnExportDetails.Location = new Point(0, 0);
+            btnExportDetails.Name = "btnExportDetails";
+            btnExportDetails.Size = new Size(1616, 30);
+            btnExportDetails.TabIndex = 1;
+            btnExportDetails.Text = "Export...";
+            btnExportDetails.Click += btnExportDetails_Click;
+            // 
+            // btnExportStatsAll
+            // 
+            btnExportStatsAll.Dock = DockStyle.Top;
+            btnExportStatsAll.Location = new Point(0, 0);
+            btnExportStatsAll.Name = "btnExportStatsAll";
+            btnExportStatsAll.Size = new Size(1616, 30);
+            btnExportStatsAll.TabIndex = 1;
+            btnExportStatsAll.Text = "Export...";
+            btnExportStatsAll.Click += btnExportStatsAll_Click;
+            // 
+            // btnExportStatsSerial
+            // 
+            btnExportStatsSerial.Location = new Point(330, 5);
+            btnExportStatsSerial.Name = "btnExportStatsSerial";
+            btnExportStatsSerial.Size = new Size(100, 30);
+            btnExportStatsSerial.TabIndex = 3;
+            btnExportStatsSerial.Text = "Export...";
+            btnExportStatsSerial.Click += btnExportStatsSerial_Click;
+            // 
+            // btnApplyFilters
+            // 
+            btnApplyFilters.Location = new Point(610, 32);
+            btnApplyFilters.Name = "btnApplyFilters";
+            btnApplyFilters.Size = new Size(100, 30);
+            btnApplyFilters.TabIndex = 9;
+            btnApplyFilters.Text = "Apply";
+            btnApplyFilters.Click += btnApplyFilters_Click;
+            // 
+            // chkWithSerialNumber
+            // 
+            chkWithSerialNumber.Checked = true;
+            chkWithSerialNumber.CheckState = CheckState.Checked;
+            chkWithSerialNumber.Location = new Point(120, 32);
+            chkWithSerialNumber.Name = "chkWithSerialNumber";
+            chkWithSerialNumber.Size = new Size(100, 30);
+            chkWithSerialNumber.TabIndex = 7;
+            chkWithSerialNumber.Text = "With Serial#";
+            // 
+            // btnGetDetails
+            // 
+            btnGetDetails.Location = new Point(162, 20);
+            btnGetDetails.Name = "btnGetDetails";
+            btnGetDetails.Size = new Size(150, 30);
+            btnGetDetails.TabIndex = 1;
+            btnGetDetails.Text = "Load Details";
+            btnGetDetails.Click += btnGetDetails_Click;
+            // 
+            // btnLoadStatsAll
+            // 
+            btnLoadStatsAll.Location = new Point(12, 20);
+            btnLoadStatsAll.Name = "btnLoadStatsAll";
+            btnLoadStatsAll.Size = new Size(150, 30);
+            btnLoadStatsAll.TabIndex = 0;
+            btnLoadStatsAll.Text = "Load Stats (All)";
+            btnLoadStatsAll.Click += btnLoadStatsAll_Click;
+            // 
+            // btnLoadStatsSerial
+            // 
+            btnLoadStatsSerial.Location = new Point(220, 5);
+            btnLoadStatsSerial.Name = "btnLoadStatsSerial";
+            btnLoadStatsSerial.Size = new Size(100, 30);
+            btnLoadStatsSerial.TabIndex = 2;
+            btnLoadStatsSerial.Text = "Load Stats";
+            btnLoadStatsSerial.Click += btnLoadStatsSerial_Click;
+            // 
+            // lblStatusFilter
+            // 
+            lblStatusFilter.AutoSize = true;
+            lblStatusFilter.Location = new Point(120, 10);
+            lblStatusFilter.Name = "lblStatusFilter";
+            lblStatusFilter.Size = new Size(52, 20);
+            lblStatusFilter.TabIndex = 2;
+            lblStatusFilter.Text = "Status:";
+            // 
+            // grpFilters
+            // 
+            grpFilters.Controls.Add(lblVerdict);
+            grpFilters.Controls.Add(cboVerdict);
+            grpFilters.Controls.Add(lblStatusFilter);
+            grpFilters.Controls.Add(cboStatus);
+            grpFilters.Controls.Add(lblFrom);
+            grpFilters.Controls.Add(dtFrom);
+            grpFilters.Controls.Add(lblTo);
+            grpFilters.Controls.Add(chkWithSerialNumber);
+            grpFilters.Controls.Add(dtTo);
+            grpFilters.Controls.Add(btnApplyFilters);
+            grpFilters.Location = new Point(12, 52);
+            grpFilters.Name = "grpFilters";
+            grpFilters.Size = new Size(988, 70);
+            grpFilters.TabIndex = 3;
+            grpFilters.TabStop = false;
+            grpFilters.Text = "Filters";
+            // 
+            // lblVerdict
+            // 
+            lblVerdict.Location = new Point(10, 10);
+            lblVerdict.Name = "lblVerdict";
+            lblVerdict.Size = new Size(60, 20);
+            lblVerdict.TabIndex = 0;
+            // 
+            // lblFrom
+            // 
+            lblFrom.Location = new Point(230, 10);
+            lblFrom.Name = "lblFrom";
+            lblFrom.Size = new Size(60, 20);
+            lblFrom.TabIndex = 4;
+            // 
+            // lblTo
+            // 
+            lblTo.Location = new Point(420, 10);
+            lblTo.Name = "lblTo";
+            lblTo.Size = new Size(60, 20);
+            lblTo.TabIndex = 6;
+            // 
+            // grpMapping
+            // 
+            grpMapping.Controls.Add(lblMap);
+            grpMapping.Controls.Add(cmbMapPlanRunNumber);
+            grpMapping.Location = new Point(12, 138);
+            grpMapping.Name = "grpMapping";
+            grpMapping.Size = new Size(988, 56);
+            grpMapping.TabIndex = 4;
+            grpMapping.TabStop = false;
+            grpMapping.Text = "Column Mapping";
+            // 
+            // lblMap
+            // 
+            lblMap.Location = new Point(10, 25);
+            lblMap.Name = "lblMap";
+            lblMap.Size = new Size(180, 20);
+            lblMap.TabIndex = 0;
+            // 
+            // grpStats
+            // 
+            grpStats.Controls.Add(btnLoadStatsAll);
+            grpStats.Controls.Add(btnGetDetails);
+            grpStats.Controls.Add(btnExportOverview);
+            grpStats.Location = new Point(12, 196);
+            grpStats.Name = "grpStats";
+            grpStats.Size = new Size(988, 56);
+            grpStats.TabIndex = 5;
+            grpStats.TabStop = false;
+            grpStats.Text = "Statistics";
+            // 
+            // statusStrip1
+            // 
+            statusStrip1.ImageScalingSize = new Size(20, 20);
+            statusStrip1.Items.AddRange(new ToolStripItem[] { lblStatus });
+            statusStrip1.Location = new Point(0, 894);
+            statusStrip1.Name = "statusStrip1";
+            statusStrip1.Size = new Size(1018, 26);
+            statusStrip1.TabIndex = 7;
+            // 
+            // lblStatus
+            // 
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(53, 20);
+            lblStatus.Text = "Ready.";
+            // 
+            // split
+            // 
+            split.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            split.Location = new Point(12, 258);
+            split.Name = "split";
+            split.Orientation = Orientation.Horizontal;
+            // 
+            // split.Panel1
+            // 
             split.Panel1.Controls.Add(containerTop);
-            // Tabs
-            tabs.Dock = DockStyle.Fill;
-            // Summary tab
-            this.dgvSummary.ReadOnly=true; 
-            this.dgvSummary.Dock = DockStyle.Fill; 
-            //this.btnExportDetails.Text = "Export..."; 
-            //this.btnExportDetails.Dock = DockStyle.Top;
-            //this.btnExportDetails.Click += btnExportDetails_Click;
-            tabSummary.Controls.Add(this.dgvSummary); 
-            //tabDetails.Controls.Add(this.btnExportDetails);
-            ///// Details tab
-            this.dgvDetails.ReadOnly = true;
-            this.dgvDetails.Dock = DockStyle.Fill;
-            this.btnExportDetails.Text = "Export...";
-            this.btnExportDetails.Dock = DockStyle.Top;
-            this.btnExportDetails.Click += btnExportDetails_Click;
-            tabDetails.Controls.Add(this.dgvDetails);
-            tabDetails.Controls.Add(this.btnExportDetails);
-            // Stats (All)
-            this.dgvStatsAll.ReadOnly=true; 
-            this.dgvStatsAll.Dock = DockStyle.Fill; 
-            this.btnExportStatsAll.Text = "Export..."; 
-            this.btnExportStatsAll.Dock = DockStyle.Top; 
-            this.btnExportStatsAll.Click += btnExportStatsAll_Click;
-            tabAll.Controls.Add(this.dgvStatsAll); 
-            tabAll.Controls.Add(this.btnExportStatsAll);
-            // Stats by Serial
-            this.dgvStatsSerial.ReadOnly=true; 
-            this.dgvStatsSerial.Dock = DockStyle.Fill; 
-            this.btnLoadStatsSerial.Text = "Load Stats"; 
-            this.btnLoadStatsSerial.Click += btnLoadStatsSerial_Click; 
-            this.btnExportStatsSerial.Text = "Export..."; 
-            this.btnExportStatsSerial.Click += btnExportStatsSerial_Click; 
-            lblSerial.Text = "Serial:"; lblSerial.AutoSize=true; 
-            lblSerial.SetBounds(3,10,50,20);
-            this.txtSerial.SetBounds(60,6,150,28); 
-            this.btnLoadStatsSerial.SetBounds(220,5,100,30); 
-            this.btnExportStatsSerial.SetBounds(330,5,100,30);
-            var pnlSer1 = new Panel() 
-            { 
-                Dock = DockStyle.Top, Height = 40 
-            }; 
-            pnlSer1.Controls.AddRange(new Control[] 
-            { 
-                lblSerial, this.txtSerial, this.btnLoadStatsSerial, this.btnExportStatsSerial 
-            }
-            );
-            tabSer.Controls.Add(this.dgvStatsSerial); 
-            tabSer.Controls.Add(pnlSer1);
-            tabs.TabPages.AddRange(
-                new[] 
-                {
-                tabSummary, tabDetails, tabAll, tabSer 
-            });
+            // 
+            // split.Panel2
+            // 
             split.Panel2.Controls.Add(tabs);
-            // Status
-            this.statusStrip1.Items.Add(this.lblStatus); 
-            this.lblStatus.Text = "Ready."; 
-            this.statusStrip1.Dock = DockStyle.Bottom;
-            // Form
-            this.ResumeLayout(false);
-            this.txtPlanRunName = new TextBox();
-            this.txtPlanRunName.PlaceholderText = "PlanRun Name contains...";
-            this.txtPlanRunName.SetBounds(10, 60, 300, 28);
-            //this.grpFilters.Controls.Add(this.txtPlanRunName);
-            
-            this.Controls.AddRange(new Control[]{this.btnOpenDb,this.txtDbPath,this.btnLoad,this.grpFilters,this.grpMapping,this.grpStats,split,this.statusStrip1, this.txtPlanRunName });
-            this.Text = "Test Run Viewer (SQLite)"; this.ClientSize = new System.Drawing.Size(1200,920);
-            
+            split.Size = new Size(1624, 640);
+            split.SplitterDistance = 210;
+            split.TabIndex = 6;
+            // 
+            // containerTop
+            // 
+            containerTop.Controls.Add(dgvOverview);
+            containerTop.Location = new Point(0, 0);
+            containerTop.Name = "containerTop";
+            containerTop.Size = new Size(995, 207);
+            containerTop.TabIndex = 0;
+            // 
+            // tabs
+            // 
+            tabs.Controls.Add(tabSummary);
+            tabs.Controls.Add(tabDetails);
+            tabs.Controls.Add(tabAll);
+            tabs.Controls.Add(tabSer);
+            tabs.Dock = DockStyle.Fill;
+            tabs.Location = new Point(0, 0);
+            tabs.Name = "tabs";
+            tabs.SelectedIndex = 0;
+            tabs.Size = new Size(1624, 426);
+            tabs.TabIndex = 0;
+            // 
+            // tabSummary
+            // 
+            tabSummary.Controls.Add(dgvSummary);
+            tabSummary.Location = new Point(4, 29);
+            tabSummary.Name = "tabSummary";
+            tabSummary.Size = new Size(1616, 393);
+            tabSummary.TabIndex = 0;
+            tabSummary.Text = "Summary";
+            // 
+            // tabDetails
+            // 
+            tabDetails.Controls.Add(dgvDetails);
+            tabDetails.Controls.Add(btnExportDetails);
+            tabDetails.Location = new Point(4, 29);
+            tabDetails.Name = "tabDetails";
+            tabDetails.Size = new Size(1616, 393);
+            tabDetails.TabIndex = 1;
+            tabDetails.Text = "Details";
+            // 
+            // tabAll
+            // 
+            tabAll.Controls.Add(dgvStatsAll);
+            tabAll.Controls.Add(btnExportStatsAll);
+            tabAll.Location = new Point(4, 29);
+            tabAll.Name = "tabAll";
+            tabAll.Size = new Size(1616, 393);
+            tabAll.TabIndex = 2;
+            tabAll.Text = "Stats (All)";
+            // 
+            // tabSer
+            // 
+            tabSer.Controls.Add(dgvStatsSerial);
+            tabSer.Controls.Add(pnlSer1);
+            tabSer.Location = new Point(4, 29);
+            tabSer.Name = "tabSer";
+            tabSer.Size = new Size(1616, 393);
+            tabSer.TabIndex = 3;
+            tabSer.Text = "Stats (By Serial)";
+            // 
+            // pnlSer1
+            // 
+            pnlSer1.AutoScroll = true;
+            pnlSer1.Controls.Add(lblSerial);
+            pnlSer1.Controls.Add(txtSerial);
+            pnlSer1.Controls.Add(btnLoadStatsSerial);
+            pnlSer1.Controls.Add(btnExportStatsSerial);
+            pnlSer1.Location = new Point(0, 0);
+            pnlSer1.Name = "pnlSer1";
+            pnlSer1.Size = new Size(200, 100);
+            pnlSer1.TabIndex = 1;
+            // 
+            // lblSerial
+            // 
+            lblSerial.AutoSize = true;
+            lblSerial.Location = new Point(3, 10);
+            lblSerial.Name = "lblSerial";
+            lblSerial.Size = new Size(49, 20);
+            lblSerial.TabIndex = 0;
+            lblSerial.Text = "Serial:";
+            // 
+            // pnlSer
+            // 
+            pnlSer.AutoScroll = true;
+            pnlSer.Location = new Point(0, 0);
+            pnlSer.Name = "pnlSer";
+            pnlSer.Size = new Size(200, 100);
+            pnlSer.TabIndex = 0;
+            // 
+            // txtPlanRunName
+            // 
+            txtPlanRunName.Location = new Point(10, 60);
+            txtPlanRunName.Name = "txtPlanRunName";
+            txtPlanRunName.PlaceholderText = "PlanRun Name contains...";
+            txtPlanRunName.Size = new Size(300, 27);
+            txtPlanRunName.TabIndex = 8;
+            // 
+            // MainForm
+            // 
+            ClientSize = new Size(1018, 920);
+            Controls.Add(btnOpenDb);
+            Controls.Add(txtDbPath);
+            Controls.Add(btnLoad);
+            Controls.Add(grpFilters);
+            Controls.Add(grpMapping);
+            Controls.Add(grpStats);
+            Controls.Add(split);
+            Controls.Add(statusStrip1);
+            Controls.Add(txtPlanRunName);
+            Name = "MainForm";
+            Text = "Test Run Viewer (SQLite)";
+            ((System.ComponentModel.ISupportInitialize)dgvOverview).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvDetails).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvSummary).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvStatsAll).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvStatsSerial).EndInit();
+            grpFilters.ResumeLayout(false);
+            grpFilters.PerformLayout();
+            grpMapping.ResumeLayout(false);
+            grpStats.ResumeLayout(false);
+            statusStrip1.ResumeLayout(false);
+            statusStrip1.PerformLayout();
+            split.Panel1.ResumeLayout(false);
+            split.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)split).EndInit();
+            split.ResumeLayout(false);
+            containerTop.ResumeLayout(false);
+            tabs.ResumeLayout(false);
+            tabSummary.ResumeLayout(false);
+            tabDetails.ResumeLayout(false);
+            tabAll.ResumeLayout(false);
+            tabSer.ResumeLayout(false);
+            pnlSer1.ResumeLayout(false);
+            pnlSer1.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
+
+
 
         }
+        private Label lblVerdict;
+        private Label lblFrom;
+        private Label lblTo;
+        private Label lblMap;
+        private SplitContainer split;
+        private Panel containerTop;
+        private TabControl tabs;
+        private TabPage tabSummary;
+        private TabPage tabDetails;
+        private TabPage tabAll;
+        private TabPage tabSer;
+        private Panel pnlSer1;
+        private Label lblSerial;
+        private Panel pnlSer;
     }
 }
