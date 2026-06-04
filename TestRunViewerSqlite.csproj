@@ -5,7 +5,11 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>electronic_electronics_chip_memory_ram_icon_261977.ico</ApplicationIcon>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="electronic_electronics_chip_memory_ram_icon_261977.ico" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageReference Include="ClosedXML" Version="0.103.0" />

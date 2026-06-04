@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 using Microsoft.Data.Sqlite;
 using System.Data;
 using System.Text;
@@ -364,8 +365,9 @@ LEFT JOIN resulttype ON
 JOIN GetStepName ON
 	testrun.runid = GetStepName.runid)
 WHERE
-	( ((GetStepName.StepName = 'User Input Test Info Step') or (GetStepName.StepName = 'Factory Data Test Info Step'))
-		and (Signal = 'Serial Number')
+	( --((GetStepName.StepName = 'Operator Inputs Receiver') or (GetStepName.StepName = 'User Input Test Info Step') or (GetStepName.StepName = 'Factory Data Test Info Step'))
+		--and 
+		((Signal = 'Serial Number') )
 )
 ORDER BY
 	planrun.PlanRunNumber ,
@@ -824,7 +826,7 @@ With GetReport AS
 			WHERE
 				( (GetStepName.StepName = 'User Input Test Info Step')
 					and (Signal = 'Serial Number')
-						and (SerialNumber =:serNum))
+						and (SerialNumber =@serNum))
 			ORDER BY
 				planrun.PlanRunNumber
 	),
@@ -1127,9 +1129,11 @@ Group BY
                 resultSelector: acc =>
                     acc.Count > 1
                         ? acc.M2 / (acc.Count - 1)   // ✅ sample variance
-                        : (double?)null,
+                        : (double?) 0,
                 isDeterministic: true
             );
+		
+		
         }
 
         private static void RegisterStdDev(SqliteConnection conn)
@@ -1156,7 +1160,7 @@ Group BY
                 resultSelector: acc =>
                     acc.Count > 1
                         ? (double?)Math.Sqrt(acc.M2 / (acc.Count - 1))    // ✅ sample stdev
-                        : (double?)null,
+                        : (double?)0.0,
                 isDeterministic: true
             );
         }
@@ -1665,11 +1669,15 @@ ORDER BY Status";
             {
                 var table = await ExecuteQueryAsync(
                     _statsBySerialSql,
-                    cmd => cmd.Parameters.AddWithValue(":serNum", serial));
-
-                dgvStatsSerial.DataSource = table;
-                lblStatus.Text = $"Loaded {table.Rows.Count} rows.";
+                    cmd => cmd.Parameters.AddWithValue("@serNum", serial));
+				if (table.Rows.Count > 1)
+				{
+					dgvStatsSerial.DataSource = table;
+					lblStatus.Text = $"Loaded {table.Rows.Count} rows.";
+				}
+				else lblStatus.Text = "Loaded 0 rows. More than one run needed for statistical analysis! ";
             }
+
             catch (Exception ex)
             {
                 MessageBox.Show(
@@ -1723,17 +1731,21 @@ ORDER BY Status";
         }
         private void ExportDataTableToExcel(DataTable table, string path, string sheetName) 
         { 
-            using var wb = new XLWorkbook(); 
+            using var wb = new XLWorkbook();
+			var cellstring = "";
             var ws = wb.Worksheets.Add(string.IsNullOrWhiteSpace(sheetName) ? "Sheet1" : sheetName); 
             for (int c = 0; c < table.Columns.Count; c++) 
-                ws.Cell(1, c + 1).Value = table.Columns[c].ColumnName; 
-            for (int r = 0; r < table.Rows.Count; r++) 
-                for (int c = 0; c < table.Columns.Count; c++)
-                    //var value = table.Rows[r][c];
-                    //ws.Cell(r + 2, c + 1).SetValue(value?.ToString() ?? string.Empty);
-                    ws.Cell(r + 2, c + 1).SetValue(table.Rows[r][c]?.ToString() ?? string.Empty); 
-                    //ws.Cell(r + 2, c + 1).Value = table.Rows[r][c]; 
-                    ws.Columns().AdjustToContents(); wb.SaveAs(path); }
+                ws.Cell(1, c + 1).Value = table.Columns[c].ColumnName;
+			for (int r = 0; r < table.Rows.Count; r++)
+				for (int c = 0; c < table.Columns.Count; c++)
+				{//var value = table.Rows[r][c];
+				 //ws.Cell(r + 2, c + 1).SetValue(value?.ToString() ?? string.Empty);
+					cellstring = table.Rows[r][c]?.ToString() ?? string.Empty;
+					//ws.Cell(r + 2, c + 1).SetValue(table.Rows[r][c]?.ToString() ?? string.Empty); 
+					ws.Cell(r + 2, c + 1).SetValue(cellstring.Length >32767 ? cellstring.Substring(0,32767) : cellstring);
+					//ws.Cell(r + 2, c + 1).Value = table.Rows[r][c]; 
+				}
+            ws.Columns().AdjustToContents(); wb.SaveAs(path); }
         private void Export(DataTable dt, string defaultFile)
         {
             if (dt == null || dt.Rows.Count == 0)
@@ -1890,6 +1902,7 @@ ORDER BY Status";
                 txtDbPath.Text = _dbPath;
 
                 SaveSettings();
+                LoadOverviewAsync();
                 UpdateUiState();
             }
         }
