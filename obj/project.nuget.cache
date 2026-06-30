@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "kZcOlbaPVwA=",
+  "dgSpecHash": "4xMJkV+TpJ0=",
   "success": true,
   "projectFilePath": "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
   "expectedPackageFiles": [
@@ -9,14 +9,14 @@
     "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\documentformat.openxml\\3.0.1\\documentformat.openxml.3.0.1.nupkg.sha512",
     "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\documentformat.openxml.framework\\3.0.1\\documentformat.openxml.framework.3.0.1.nupkg.sha512",
     "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\excelnumberformat\\1.1.0\\excelnumberformat.1.1.0.nupkg.sha512",
-    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\microsoft.data.sqlite\\8.0.0\\microsoft.data.sqlite.8.0.0.nupkg.sha512",
-    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\microsoft.data.sqlite.core\\8.0.0\\microsoft.data.sqlite.core.8.0.0.nupkg.sha512",
+    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\microsoft.data.sqlite\\9.0.14\\microsoft.data.sqlite.9.0.14.nupkg.sha512",
+    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\microsoft.data.sqlite.core\\9.0.14\\microsoft.data.sqlite.core.9.0.14.nupkg.sha512",
     "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\rbush\\3.2.0\\rbush.3.2.0.nupkg.sha512",
     "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sixlabors.fonts\\1.0.0\\sixlabors.fonts.1.0.0.nupkg.sha512",
-    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.6\\sqlitepclraw.bundle_e_sqlite3.2.1.6.nupkg.sha512",
-    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sqlitepclraw.core\\2.1.6\\sqlitepclraw.core.2.1.6.nupkg.sha512",
-    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.6\\sqlitepclraw.lib.e_sqlite3.2.1.6.nupkg.sha512",
-    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sqlitepclraw.provider.e_sqlite3\\2.1.6\\sqlitepclraw.provider.e_sqlite3.2.1.6.nupkg.sha512",
+    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.10\\sqlitepclraw.bundle_e_sqlite3.2.1.10.nupkg.sha512",
+    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sqlitepclraw.core\\2.1.10\\sqlitepclraw.core.2.1.10.nupkg.sha512",
+    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.10\\sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",
+    "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\sqlitepclraw.provider.e_sqlite3\\2.1.10\\sqlitepclraw.provider.e_sqlite3.2.1.10.nupkg.sha512",
     "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\system.io.packaging\\8.0.0\\system.io.packaging.8.0.0.nupkg.sha512",
     "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512"
   ],
@@ -30,7 +30,7 @@
       "filePath": "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
       "libraryId": "ClosedXML",
       "targetGraphs": [
-        "net8.0-windows7.0"
+        "net9.0-windows7.0"
       ]
     }
   ]

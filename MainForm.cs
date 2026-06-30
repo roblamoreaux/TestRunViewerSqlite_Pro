@@ -409,21 +409,22 @@ WHERE testrun.RunID = (PlanRun.RunID + 1)
 ORDER BY planrun.PlanRunNumber, GetStepTimestamp.TimeStamp
 ";
         private readonly string _summarySql = @"SELECT
-	planrun.planrunnumber,
+	
 	params.groupname,
 	params.name,
 	params.value,
-    params.paramid
-FROM
+	params.paramid as paramid ,
+    planrun.planrunnumber
+	FROM
 	planrun
-INNER JOIN (
-(testrun
-INNER JOIN testrun2params ON
-	testrun.runid = testrun2params.runid)
-INNER JOIN params ON
-	testrun2params.paramid = params.paramid) ON
-	planrun.runid = testrun.runid
-where
+	INNER JOIN (
+		(testrun
+	INNER JOIN testrun2params ON
+		testrun.runid = testrun2params.runid)
+	INNER JOIN params ON
+		testrun2params.paramid = params.paramid) ON
+		planrun.runid = testrun.runid
+	where
 	(planrun.planrunnumber = @PlanRunNumber);"; 
         private readonly string _statsAllSql = @"
 -- Get Stats source
@@ -1093,7 +1094,7 @@ Group BY
         }
         protected override async void OnLoad(EventArgs e)
         {
-            base.OnLoad(e); if (File.Exists(_dbPath)) { await LoadOverviewAsync(); }
+            base.OnLoad(e); // if (File.Exists(_dbPath)) { await LoadOverviewAsync(); }
         }
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
@@ -1206,7 +1207,9 @@ Group BY
          //   SQLiteFunction.RegisterFunction(
          //       typeof(TestRunViewerSqlite_Pro.Data.SqliteFunctions.VarianceAggregate));
 
-            await conn.OpenAsync(); RegisterCustomFunctions(conn); 
+            await conn.OpenAsync(); RegisterCustomFunctions(conn);
+			SqliteConnection.ClearPool(conn);
+			//conn.Open();
             using var cmd = new SqliteCommand(sql, conn); 
             configure?.Invoke(cmd); 
             //cmd.
@@ -1214,11 +1217,27 @@ Group BY
 
             table.BeginLoadData();
             table.Constraints.Clear();
-            table.PrimaryKey = null;    
+            /*table.Columns.Add("PrimaryKey", typeof(string));
+            table.PrimaryKey = new[]
+            {
+                            table.Columns["PrimaryKey"]
+            };
+            */
+		//	table.PrimaryKey = null;    
+		
+			table.Load(reader);
+            foreach (DataRow row in table.GetErrors())
+            {
+                Console.WriteLine(row.RowError);
 
-            table.Load(reader); 
+                foreach (DataColumn col in row.GetColumnsInError())
+                {
+                    Console.WriteLine(
+                        $"{col.ColumnName}: {row.GetColumnError(col)}");
+                }
+            }
             table.EndLoadData();
-
+			conn.Close();  // Async();
             return table;
         }
         private async Task<DataTable> ExecuteDetailQueryAsync(string sql, Action<SqliteCommand> configure)
@@ -1258,6 +1277,51 @@ Group BY
             table.PrimaryKey = new[]
             {
                             table.Columns["PrimaryKey"]
+            };
+            //table.PrimaryKey = null;
+
+            table.Load(reader);
+            table.EndLoadData();
+
+            return table;
+        }
+        private async Task<DataTable> ExecuteSummaryQueryAsync(string sql, Action<SqliteCommand> configure)
+        {
+            DataTable table = new DataTable();
+            using var conn = new SqliteConnection(ConnectionString);
+
+            //   SQLiteFunction.RegisterFunction(
+            //       typeof(TestRunViewerSqlite_Pro.Data.SqliteFunctions.VarianceAggregate));
+
+            await conn.OpenAsync(); RegisterCustomFunctions(conn);
+            using var cmd = new SqliteCommand(sql, conn);
+            configure?.Invoke(cmd);
+            //cmd.
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            //            table.PrimaryKey = null;
+            //table.PrimaryKey = [1, 2, 3, 4, 5];
+            /*
+                        // 1️⃣ Define schema FIRST
+                        table.Columns.Add("RunID", typeof(long));
+                        table.Columns.Add("TimeStamp", typeof(string));
+                        table.Columns.Add("Signal", typeof(string));
+                        table.Columns.Add("Value", typeof(double));
+
+                        // 2️⃣ Set composite PrimaryKey BEFORE loading
+                        table.PrimaryKey = new[]
+                        {
+                            table.Columns["RunID"],
+                            table.Columns["TimeStamp"],
+                            table.Columns["Signal"]
+                        };
+            */
+            table.BeginLoadData();
+            table.Constraints.Clear();
+            table.Columns.Add("paramid", typeof(Int64));
+            table.PrimaryKey = new[]
+            {
+                            table.Columns["paramid"]
             };
             //table.PrimaryKey = null;
 
@@ -1393,9 +1457,13 @@ ORDER BY Status";
                     MessageBoxIcon.Information);
                 return;
             }
+            Cursor.Current = Cursors.WaitCursor;
 
-            ToggleUi(false);
             lblStatus.Text = "Loading overview...";
+            UpdateUiState();
+            Application.DoEvents();
+            ToggleUi(false);
+            UpdateUiState();
 
             try
             {
@@ -1436,6 +1504,7 @@ ORDER BY Status";
             }
             finally
             {
+                Cursor.Current = Cursors.Default;
                 ToggleUi(true);
                 UpdateUiState();
             }
@@ -1511,20 +1580,23 @@ ORDER BY Status";
             {
                 lblStatus.Text =
                     $"Selected PlanRunNumber ('{columnName}') is not numeric.";
+                //Application.DoEvents();
                 dgvDetails.DataSource = null;
                 return;
             }
 
+            Cursor.Current = Cursors.WaitCursor;
+            //lblStatus.Text =  $"Loading Summary for PlanRunNumber {planRunNumber}...";
+            //Application.DoEvents();
+            UpdateUiState();
             ToggleUi(false);
-            lblStatus.Text =
-                $"Loading Summary for PlanRunNumber {planRunNumber}...";
 
             try
             {
 
 
                 var qstr = string.Format($"{_summarySql} {planRunNumber});");
-                var table = await ExecuteQueryAsync(
+                var table = await ExecuteSummaryQueryAsync(
                     //qstr, //null); //, //
                     _summarySql,
                     cmd => cmd.Parameters.AddWithValue(
@@ -1532,8 +1604,7 @@ ORDER BY Status";
                         planRunNumber));
 
                 dgvSummary.DataSource = table;
-                lblStatus.Text =
-                    $"Loaded {table.Rows.Count} summary rows for PlanRunNumber {planRunNumber}.";
+               // lblStatus.Text =  $"Loaded {table.Rows.Count} summary rows for PlanRunNumber {planRunNumber}.";
             }
             catch (Exception ex)
             {
@@ -1545,9 +1616,11 @@ ORDER BY Status";
                     MessageBoxIcon.Error);
 
                 lblStatus.Text = "Failed to load Summary.";
+                Application.DoEvents();
             }
             finally
             {
+                Cursor.Current = Cursors.Default;
                 ToggleUi(true);
                 UpdateUiState();
             }
@@ -1564,6 +1637,7 @@ ORDER BY Status";
             if (cmbMapPlanRunNumber.SelectedItem is null)
             {
                 lblStatus.Text = "Select the PlanRunNumber column mapping first.";
+                Application.DoEvents();
                 return;
             }
 
@@ -1573,6 +1647,7 @@ ORDER BY Status";
             if (rawValue is null || rawValue == DBNull.Value)
             {
                 lblStatus.Text = $"No value in column '{columnName}'.";
+                Application.DoEvents();
                 dgvDetails.DataSource = null;
                 return;
             }
@@ -1581,14 +1656,18 @@ ORDER BY Status";
             {
                 lblStatus.Text =
                     $"Selected PlanRunNumber ('{columnName}') is not numeric.";
+                Application.DoEvents();
                 dgvDetails.DataSource = null;
                 return;
             }
 
-            ToggleUi(false);
+            Cursor.Current = Cursors.WaitCursor;
             lblStatus.Text =
                 $"Loading details for PlanRunNumber {planRunNumber}...";
-
+            Application.DoEvents();
+            //UpdateUiState();
+            ToggleUi(false);
+            tabs.SelectedIndex = 1;
             try
             {
                 
@@ -1600,10 +1679,21 @@ ORDER BY Status";
                     cmd => cmd.Parameters.AddWithValue(
                         "@PlanRunNumber",
                         planRunNumber));
+				BindingSource bs = new BindingSource();
+				if (chkFailsOnly.Checked)
+				{
+					bs.DataSource = table;
+					bs.Filter = "Verdict = 'Fail'";
+					dgvDetails.DataSource = bs;
+				}
+				else
+					dgvDetails.DataSource = table;
 
-                dgvDetails.DataSource = table;
+					dgvDetails.Columns["PrimaryKey"].Visible = false;
+				
                 lblStatus.Text =
                     $"Loaded {table.Rows.Count} detail rows for PlanRunNumber {planRunNumber}.";
+                Application.DoEvents();
             }
             catch (Exception ex)
             {
@@ -1615,9 +1705,11 @@ ORDER BY Status";
                     MessageBoxIcon.Error);
 
                 lblStatus.Text = "Failed to load details.";
+                Application.DoEvents();
             }
             finally
             {
+                Cursor.Current = Cursors.Default;
                 ToggleUi(true);
                 UpdateUiState();
             }
@@ -1628,16 +1720,21 @@ ORDER BY Status";
             if (!File.Exists(_dbPath))
                 return;
 
+            Cursor.Current = Cursors.WaitCursor;
             lblStatus.Text = "Loading stats (all runs)...";
-            ToggleUi(true);
-            UpdateUiState();
+            Application.DoEvents();
+            //ToggleUi(true);
+            //UpdateUiState();
             ToggleUi(false);
-            
+            tabs.SelectedIndex = 2;
+
             try
             {
                 var table = await ExecuteQueryAsync(_statsAllSql, null);
                 dgvStatsAll.DataSource = table;
+				//dgvStatsAll.Columns["PrimaryKey"].Visible = false;
                 lblStatus.Text = $"Loaded {table.Rows.Count} rows.";
+                Application.DoEvents();
             }
             catch (Exception ex)
             {
@@ -1652,7 +1749,8 @@ ORDER BY Status";
             }
             finally
             {
-                ToggleUi(true);
+                Cursor.Current = Cursors.Default; 
+				ToggleUi(true);
                 UpdateUiState();
             }
         }
@@ -1661,9 +1759,11 @@ ORDER BY Status";
         {
             if (!File.Exists(_dbPath))
                 return;
-
-            ToggleUi(false);
             lblStatus.Text = $"Loading stats (serial {serial})...";
+            Cursor.Current = Cursors.WaitCursor;
+            Application.DoEvents();
+            ToggleUi(false);
+            tabs.SelectedIndex = 3;
 
             try
             {
@@ -1673,9 +1773,15 @@ ORDER BY Status";
 				if (table.Rows.Count > 1)
 				{
 					dgvStatsSerial.DataSource = table;
+					//dgvStatsSerial.Columns["PrimaryKey"].Visible = false;
 					lblStatus.Text = $"Loaded {table.Rows.Count} rows.";
+					Application.DoEvents();
 				}
-				else lblStatus.Text = "Loaded 0 rows. More than one run needed for statistical analysis! ";
+				else
+				{
+					lblStatus.Text = "Loaded 0 rows. More than one run needed for statistical analysis! ";
+					Application.DoEvents();
+				}
             }
 
             catch (Exception ex)
@@ -1691,7 +1797,8 @@ ORDER BY Status";
             }
             finally
             {
-                ToggleUi(true);
+                Cursor.Current = Cursors.Default; 
+				ToggleUi(true);
                 UpdateUiState();
             }
         }
