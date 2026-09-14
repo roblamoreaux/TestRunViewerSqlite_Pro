@@ -825,8 +825,8 @@ With GetReport AS
 			LEFT JOIN GetStepName ON
 				testrun.runid = GetStepName.runid)
 			WHERE
-				( (GetStepName.StepName = 'User Input Test Info Step')
-					and (Signal = 'Serial Number')
+				( ((GetStepName.StepName = 'User Input Test Info Step') OR (GetStepName.StepName = 'Operator Inputs Receiver')) and
+					(Signal = 'Serial Number')
 						and (SerialNumber =@serNum))
 			ORDER BY
 				planrun.PlanRunNumber
@@ -1058,11 +1058,11 @@ Select
 	--min((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value)), (avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK,
 	--((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value))) as CPK1, 
     --((avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK2,
-    ---Group_concat	(GetReport.Value, ', '),
+    --GROUP_CONCAT(GetReport.Value, ', '),
 	GetReport.SignalName,
 	GetReport.CheckLimit 
-	--Group_concat(GetReport.TimeStamp, ', '),
-	--Group_concat(GetReport.runid, ', ')
+	--GROUP_CONCAT(GetReport.TimeStamp, ', ') as Timestamps,
+	--GROUP_CONCAT(GetReport.runid, ', ') as RunIDS
 FROM
 	(((planrun
 	INNER JOIN testrun ON

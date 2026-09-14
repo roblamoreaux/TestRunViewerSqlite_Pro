@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj": {}
+    "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj": {}
   },
   "projects": {
-    "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj": {
+    "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+        "projectUniqueName": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
         "projectName": "TestRunViewerSqlite",
-        "projectPath": "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
-        "packagesPath": "C:\\Users\\robert.lamoreaux\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\robert.lamoreaux\\DocumentsL\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\obj\\",
+        "projectPath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+        "packagesPath": "C:\\Users\\TazTransfer\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\robert.lamoreaux\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\TazTransfer\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -27,11 +27,11 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
-          "C:\\SVN\\Products\\ECUs\\Nx3_Family\\5-Test\\Test Software Installation": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0-windows7.0": {
+            "framework": "net9.0-windows7.0",
             "targetAlias": "net9.0-windows7.0",
             "projectReferences": {}
           }
@@ -46,10 +46,11 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "10.0.400"
       },
       "frameworks": {
         "net9.0-windows7.0": {
+          "framework": "net9.0-windows7.0",
           "targetAlias": "net9.0-windows7.0",
           "dependencies": {
             "ClosedXML": {
@@ -80,7 +81,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
