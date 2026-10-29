@@ -5,6 +5,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.2.2</Version>
     <ApplicationIcon>electronic_electronics_chip_memory_ram_icon_261977.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "OK5DovVpkCU=",
+  "dgSpecHash": "C0adMwskfLk=",
   "success": true,
-  "projectFilePath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+  "projectFilePath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\TazTransfer\\.nuget\\packages\\closedxml\\0.104.0\\closedxml.0.104.0.nupkg.sha512",
     "C:\\Users\\TazTransfer\\.nuget\\packages\\closedxml.parser\\1.2.0\\closedxml.parser.1.2.0.nupkg.sha512",
@@ -18,19 +18,23 @@
     "C:\\Users\\TazTransfer\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.10\\sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",
     "C:\\Users\\TazTransfer\\.nuget\\packages\\sqlitepclraw.provider.e_sqlite3\\2.1.10\\sqlitepclraw.provider.e_sqlite3.2.1.10.nupkg.sha512",
     "C:\\Users\\TazTransfer\\.nuget\\packages\\system.io.packaging\\8.0.0\\system.io.packaging.8.0.0.nupkg.sha512",
-    "C:\\Users\\TazTransfer\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512"
+    "C:\\Users\\TazTransfer\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512",
+    "C:\\Users\\TazTransfer\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\9.0.22\\microsoft.netcore.app.runtime.win-x64.9.0.22.nupkg.sha512",
+    "C:\\Users\\TazTransfer\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\9.0.22\\microsoft.windowsdesktop.app.runtime.win-x64.9.0.22.nupkg.sha512",
+    "C:\\Users\\TazTransfer\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\9.0.22\\microsoft.aspnetcore.app.runtime.win-x64.9.0.22.nupkg.sha512"
   ],
   "logs": [
     {
       "code": "NU1603",
       "level": "Warning",
       "message": "TestRunViewerSqlite depends on ClosedXML (>= 0.103.0) but ClosedXML 0.103.0 was not found. ClosedXML 0.104.0 was resolved instead.",
-      "projectPath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+      "projectPath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+      "filePath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj",
       "libraryId": "ClosedXML",
       "targetGraphs": [
-        "net9.0-windows7.0"
+        "net9.0-windows7.0",
+        "net9.0-windows7.0/win-x64"
       ]
     }
   ]

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj": {}
+    "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj": {}
   },
   "projects": {
-    "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj": {
-      "version": "1.0.0",
+    "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj": {
+      "version": "1.2.2",
       "restore": {
-        "projectUniqueName": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+        "projectUniqueName": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj",
         "projectName": "TestRunViewerSqlite",
-        "projectPath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite.csproj",
+        "projectPath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj",
         "packagesPath": "C:\\Users\\TazTransfer\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\GitHub\\TestRunViewerSqlite_Pro\\TestRunViewerSqlite_Pro\\obj\\",
+        "outputPath": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -46,7 +46,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "10.0.400"
+        "SdkAnalysisLevel": "11.0.100"
       },
       "frameworks": {
         "net9.0-windows7.0": {
@@ -73,6 +73,20 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
+              "version": "[9.0.22, 9.0.22]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Runtime.win-x64",
+              "version": "[9.0.22, 9.0.22]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
+              "version": "[9.0.22, 9.0.22]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
@@ -81,7 +95,12 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.401/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\11.0.100-rc.3.26522.148/PortableRuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "win-x64": {
+          "#import": []
         }
       }
     }

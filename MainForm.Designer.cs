@@ -81,6 +81,16 @@ namespace TestRunViewerSqlite
             pnlSer1 = new Panel();
             pnlSer = new Panel();
             txtPlanRunName = new TextBox();
+            pnlSearch = new Panel();
+            lblSearch = new Label();
+            txtSearch = new TextBox();
+            btnFindPrev = new Button();
+            btnFindNext = new Button();
+            btnExtractTestPlan = new Button();
+            btnExtractLogFile = new Button();
+            btnOpenInEditor = new Button();
+            btnOpenLogFile = new Button();
+            chkUseTui = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)dgvOverview).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvDetails).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvSummary).BeginInit();
@@ -100,6 +110,7 @@ namespace TestRunViewerSqlite
             tabDetails.SuspendLayout();
             tabAll.SuspendLayout();
             tabSer.SuspendLayout();
+            pnlSearch.SuspendLayout();
             SuspendLayout();
             // 
             // btnOpenDb
@@ -113,6 +124,7 @@ namespace TestRunViewerSqlite
             // 
             // txtDbPath
             // 
+            txtDbPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             txtDbPath.Location = new Point(138, 14);
             txtDbPath.Name = "txtDbPath";
             txtDbPath.ReadOnly = true;
@@ -121,6 +133,7 @@ namespace TestRunViewerSqlite
             // 
             // btnLoad
             // 
+            btnLoad.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnLoad.Location = new Point(650, 12);
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(150, 32);
@@ -131,7 +144,7 @@ namespace TestRunViewerSqlite
             // dgvOverview
             // 
             dgvOverview.ColumnHeadersHeight = 29;
-            dgvOverview.Dock = DockStyle.Left;
+            dgvOverview.Dock = DockStyle.Fill;
             dgvOverview.Location = new Point(0, 0);
             dgvOverview.Name = "dgvOverview";
             dgvOverview.ReadOnly = true;
@@ -143,21 +156,20 @@ namespace TestRunViewerSqlite
             // 
             // dgvDetails
             // 
-            dgvDetails.Anchor = AnchorStyles.Left;
+            dgvDetails.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvDetails.ColumnHeadersHeight = 29;
             dgvDetails.Location = new Point(0, 37);
-            dgvDetails.MaximumSize = new Size(2048, 475);
             dgvDetails.Name = "dgvDetails";
             dgvDetails.ReadOnly = true;
             dgvDetails.RowHeadersWidth = 51;
-            dgvDetails.Size = new Size(1327, 385);
+            dgvDetails.Size = new Size(1330, 405);
             dgvDetails.TabIndex = 0;
             // 
             // dgvSummary
             // 
-            dgvSummary.Anchor = AnchorStyles.Left;
             dgvSummary.ColumnHeadersHeight = 29;
-            dgvSummary.Location = new Point(0, -2);
+            dgvSummary.Dock = DockStyle.Fill;
+            dgvSummary.Location = new Point(0, 0);
             dgvSummary.Name = "dgvSummary";
             dgvSummary.ReadOnly = true;
             dgvSummary.RowHeadersWidth = 51;
@@ -166,25 +178,24 @@ namespace TestRunViewerSqlite
             // 
             // dgvStatsAll
             // 
-            dgvStatsAll.Anchor = AnchorStyles.Left;
+            dgvStatsAll.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvStatsAll.ColumnHeadersHeight = 29;
             dgvStatsAll.Location = new Point(0, 37);
-            dgvStatsAll.MaximumSize = new Size(2048, 475);
             dgvStatsAll.Name = "dgvStatsAll";
             dgvStatsAll.ReadOnly = true;
             dgvStatsAll.RowHeadersWidth = 51;
-            dgvStatsAll.Size = new Size(1327, 385);
+            dgvStatsAll.Size = new Size(1330, 405);
             dgvStatsAll.TabIndex = 0;
             // 
             // dgvStatsSerial
             // 
-            dgvStatsSerial.Anchor = AnchorStyles.Left;
+            dgvStatsSerial.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvStatsSerial.ColumnHeadersHeight = 29;
             dgvStatsSerial.Location = new Point(0, 37);
             dgvStatsSerial.Name = "dgvStatsSerial";
             dgvStatsSerial.ReadOnly = true;
             dgvStatsSerial.RowHeadersWidth = 51;
-            dgvStatsSerial.Size = new Size(1327, 405);
+            dgvStatsSerial.Size = new Size(1330, 405);
             dgvStatsSerial.TabIndex = 0;
             // 
             // cboVerdict
@@ -392,15 +403,64 @@ namespace TestRunViewerSqlite
             grpStats.Controls.Add(btnLoadStatsSerial);
             grpStats.Controls.Add(btnGetDetails);
             grpStats.Controls.Add(btnExportOverview);
+            grpStats.Controls.Add(btnExtractTestPlan);
+            grpStats.Controls.Add(btnExtractLogFile);
+            grpStats.Controls.Add(btnOpenInEditor);
+            grpStats.Controls.Add(btnOpenLogFile);
+            grpStats.Controls.Add(chkUseTui);
             grpStats.Location = new Point(12, 138);
             grpStats.Name = "grpStats";
-            grpStats.Size = new Size(988, 67);
+            grpStats.Size = new Size(988, 103);
             grpStats.TabIndex = 5;
             grpStats.TabStop = false;
             grpStats.Text = "Commands";
-            // 
+            //
+            // btnExtractTestPlan
+            //
+            btnExtractTestPlan.Location = new Point(12, 60);
+            btnExtractTestPlan.Name = "btnExtractTestPlan";
+            btnExtractTestPlan.Size = new Size(150, 30);
+            btnExtractTestPlan.TabIndex = 9;
+            btnExtractTestPlan.Text = "Extract Test Plan...";
+            btnExtractTestPlan.Click += btnExtractTestPlan_Click;
+            //
+            // btnExtractLogFile
+            //
+            btnExtractLogFile.Location = new Point(168, 60);
+            btnExtractLogFile.Name = "btnExtractLogFile";
+            btnExtractLogFile.Size = new Size(150, 30);
+            btnExtractLogFile.TabIndex = 10;
+            btnExtractLogFile.Text = "Extract Log File...";
+            btnExtractLogFile.Click += btnExtractLogFile_Click;
+            //
+            // btnOpenInEditor
+            //
+            btnOpenInEditor.Location = new Point(480, 60);
+            btnOpenInEditor.Name = "btnOpenInEditor";
+            btnOpenInEditor.Size = new Size(200, 30);
+            btnOpenInEditor.TabIndex = 12;
+            btnOpenInEditor.Text = "Open Test Plan in Editor";
+            btnOpenInEditor.Click += btnOpenInEditor_Click;
+            //
+            // btnOpenLogFile
+            //
+            btnOpenLogFile.Location = new Point(324, 60);
+            btnOpenLogFile.Name = "btnOpenLogFile";
+            btnOpenLogFile.Size = new Size(150, 30);
+            btnOpenLogFile.TabIndex = 11;
+            btnOpenLogFile.Text = "Open Log File";
+            btnOpenLogFile.Click += btnOpenLogFile_Click;
+            //
+            // chkUseTui
+            //
+            chkUseTui.Location = new Point(690, 60);
+            chkUseTui.Name = "chkUseTui";
+            chkUseTui.Size = new Size(100, 30);
+            chkUseTui.TabIndex = 13;
+            chkUseTui.Text = "Use TUI";
+            //
             // chkFailsOnly
-            // 
+            //
             chkFailsOnly.Location = new Point(178, 22);
             chkFailsOnly.Name = "chkFailsOnly";
             chkFailsOnly.Size = new Size(96, 30);
@@ -440,8 +500,8 @@ namespace TestRunViewerSqlite
             // 
             // split
             // 
-            split.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            split.Location = new Point(12, 211);
+            split.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            split.Location = new Point(12, 247);
             split.Name = "split";
             split.Orientation = Orientation.Horizontal;
             // 
@@ -453,7 +513,8 @@ namespace TestRunViewerSqlite
             // 
             split.Panel2.BackColor = SystemColors.ControlLight;
             split.Panel2.Controls.Add(tabs);
-            split.Size = new Size(1372, 687);
+            split.Panel2.Controls.Add(pnlSearch);
+            split.Size = new Size(1338, 651);
             split.SplitterDistance = 208;
             split.TabIndex = 6;
             // 
@@ -461,20 +522,68 @@ namespace TestRunViewerSqlite
             // 
             containerTop.BackColor = SystemColors.ControlLight;
             containerTop.Controls.Add(dgvOverview);
+            containerTop.Dock = DockStyle.Fill;
             containerTop.Location = new Point(0, 0);
             containerTop.Name = "containerTop";
             containerTop.Size = new Size(907, 207);
             containerTop.TabIndex = 0;
-            // 
+            //
+            // pnlSearch
+            //
+            pnlSearch.Controls.Add(lblSearch);
+            pnlSearch.Controls.Add(txtSearch);
+            pnlSearch.Controls.Add(btnFindPrev);
+            pnlSearch.Controls.Add(btnFindNext);
+            pnlSearch.Dock = DockStyle.Top;
+            pnlSearch.Location = new Point(0, 0);
+            pnlSearch.Name = "pnlSearch";
+            pnlSearch.Size = new Size(1338, 36);
+            pnlSearch.TabIndex = 1;
+            //
+            // lblSearch
+            //
+            lblSearch.AutoSize = true;
+            lblSearch.Location = new Point(3, 9);
+            lblSearch.Name = "lblSearch";
+            lblSearch.Size = new Size(40, 20);
+            lblSearch.TabIndex = 0;
+            lblSearch.Text = "Find:";
+            //
+            // txtSearch
+            //
+            txtSearch.Location = new Point(49, 5);
+            txtSearch.Name = "txtSearch";
+            txtSearch.PlaceholderText = "Search current tab...";
+            txtSearch.Size = new Size(250, 27);
+            txtSearch.TabIndex = 1;
+            txtSearch.KeyDown += txtSearch_KeyDown;
+            //
+            // btnFindPrev
+            //
+            btnFindPrev.Location = new Point(305, 3);
+            btnFindPrev.Name = "btnFindPrev";
+            btnFindPrev.Size = new Size(120, 30);
+            btnFindPrev.TabIndex = 2;
+            btnFindPrev.Text = "Find Previous";
+            btnFindPrev.Click += btnFindPrev_Click;
+            //
+            // btnFindNext
+            //
+            btnFindNext.Location = new Point(431, 3);
+            btnFindNext.Name = "btnFindNext";
+            btnFindNext.Size = new Size(120, 30);
+            btnFindNext.TabIndex = 3;
+            btnFindNext.Text = "Find Next";
+            btnFindNext.Click += btnFindNext_Click;
+            //
             // tabs
-            // 
-            tabs.Anchor = AnchorStyles.Left;
+            //
             tabs.Controls.Add(tabSummary);
             tabs.Controls.Add(tabDetails);
             tabs.Controls.Add(tabAll);
             tabs.Controls.Add(tabSer);
-            tabs.Location = new Point(0, 27);
-            tabs.MaximumSize = new Size(2048, 475);
+            tabs.Dock = DockStyle.Fill;
+            tabs.Location = new Point(0, 0);
             tabs.Name = "tabs";
             tabs.SelectedIndex = 0;
             tabs.Size = new Size(1338, 475);
@@ -547,6 +656,8 @@ namespace TestRunViewerSqlite
             // 
             // MainForm
             // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnApplyFilters;
             ClientSize = new Size(1362, 953);
             Controls.Add(btnOpenDb);
@@ -559,6 +670,7 @@ namespace TestRunViewerSqlite
             Controls.Add(txtPlanRunName);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Location = new Point(100, 50);
+            MinimumSize = new Size(1040, 600);
             Name = "MainForm";
             Text = "Test Run Viewer (SQLite)";
             ((System.ComponentModel.ISupportInitialize)dgvOverview).EndInit();
@@ -583,6 +695,8 @@ namespace TestRunViewerSqlite
             tabDetails.ResumeLayout(false);
             tabAll.ResumeLayout(false);
             tabSer.ResumeLayout(false);
+            pnlSearch.ResumeLayout(false);
+            pnlSearch.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
 
@@ -605,5 +719,15 @@ namespace TestRunViewerSqlite
         private Panel pnlSer;
         private TextBox txtSerial;
         private CheckBox chkFailsOnly;
+        private Panel pnlSearch;
+        private Label lblSearch;
+        private TextBox txtSearch;
+        private Button btnFindPrev;
+        private Button btnFindNext;
+        private Button btnExtractTestPlan;
+        private Button btnExtractLogFile;
+        private Button btnOpenInEditor;
+        private Button btnOpenLogFile;
+        private CheckBox chkUseTui;
     }
 }

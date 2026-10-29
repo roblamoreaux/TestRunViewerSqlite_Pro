@@ -1,0 +1,68 @@
+<!--
+  MSI for Test Run Viewer (SQLite). Build with build-installer.ps1, which supplies:
+    PublishDir - folder produced by dotnet publish (self-contained win-x64)
+    Version    - <Version> from TestRunViewerSqlite.csproj
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="Test Run Viewer (SQLite)"
+           Manufacturer="New Eagle"
+           Version="$(var.Version)"
+           UpgradeCode="58B7E9C2-7BD6-403E-9E2B-C668973E9418"
+           Scope="perUser">
+
+    <!-- Keep UpgradeCode fixed forever; bumping Version replaces the old install. -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="$(sys.SOURCEFILEDIR)..\electronic_electronics_chip_memory_ram_icon_261977.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <!-- Per-user install (%LocalAppData%\Programs) so no admin/UAC prompt is needed. -->
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="UserProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="Test Run Viewer SQLite" />
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Default to the folder chosen last time, so upgrades go to the same place. -->
+    <Property Id="INSTALLFOLDER">
+      <RegistrySearch Id="PreviousInstallFolder" Root="HKCU" Key="Software\New Eagle\TestRunViewerSqlite"
+                      Name="InstallFolder" Type="raw" />
+    </Property>
+
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishDir)\**">
+        <Exclude Files="$(var.PublishDir)\**\*.pdb" />
+      </Files>
+    </ComponentGroup>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Component Id="StartMenuShortcut">
+        <Shortcut Id="AppShortcut"
+                  Name="Test Run Viewer (SQLite)"
+                  Target="[INSTALLFOLDER]TestRunViewerSqlite.exe"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon" />
+        <RegistryValue Root="HKCU" Key="Software\New Eagle\TestRunViewerSqlite"
+                       Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKCU" Key="Software\New Eagle\TestRunViewerSqlite"
+                       Name="InstallFolder" Type="string" Value="[INSTALLFOLDER]" />
+        <RemoveFolder Id="RemoveInstallFolder" Directory="INSTALLFOLDER" On="uninstall" />
+        <RemoveFolder Id="RemoveUserProgramsFolder" Directory="UserProgramsFolder" On="uninstall" />
+      </Component>
+    </StandardDirectory>
+
+    <Feature Id="Main">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+
+    <!-- Welcome -> choose folder -> install (skips the stock license page). -->
+    <UI>
+      <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Condition="NOT Installed" Order="99" />
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="99" />
+    </UI>
+  </Package>
+</Wix>

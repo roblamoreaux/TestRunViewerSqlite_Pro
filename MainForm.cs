@@ -2,6 +2,8 @@
 using DocumentFormat.OpenXml.Drawing.Diagrams;
 using Microsoft.Data.Sqlite;
 using System.Data;
+using System.Diagnostics;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 //using SqliteFunctions;
@@ -11,7 +13,9 @@ namespace TestRunViewerSqlite
     public partial class MainForm : Form
     {
         private string _dbPath = string.Empty;
-        private string ConnectionString => $"Data Source={_dbPath};Mode=ReadOnly;Cache=Shared"; private string SettingsFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TestRunViewerSqlite"); private string SettingsFile => Path.Combine(SettingsFolder, "settings.json");
+        // Read-only and unpooled: the file is only open while a query runs, so another process
+        // (e.g. OpenTAP writing results) can keep updating it, and each load sees the latest data.
+        private string ConnectionString => $"Data Source={_dbPath};Mode=ReadOnly;Pooling=False"; private string SettingsFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TestRunViewerSqlite"); private string SettingsFile => Path.Combine(SettingsFolder, "settings.json");
 
         /*        private string ConnectionString => $"Data Source={_dbPath};Mode=ReadOnly;Cache=Shared"; 
                 private string SettingsFolder => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TestRunViewerSqlite"); 
@@ -1080,6 +1084,7 @@ Group BY
 	public MainForm()
         {
             InitializeComponent(); dgvOverview.AutoGenerateColumns = true;
+            Text += $" v{typeof(MainForm).Assembly.GetName().Version?.ToString(3)}";
             dgvDetails.AutoGenerateColumns = true; 
             dgvStatsAll.AutoGenerateColumns = true;
             dgvStatsSerial.AutoGenerateColumns = true;
@@ -1089,12 +1094,23 @@ Group BY
             cboStatus.SelectedIndex = 0; 
             dtFrom.ShowCheckBox = true;
             dtFrom.Value = new DateTime(2015,1,1);
-            dtTo.ShowCheckBox = true; LoadSettings();
+            dtTo.ShowCheckBox = true;
+            dtTo.Checked = false; // no upper limit by default, so Load Overview picks up runs added after startup
+            LoadSettings();
+            UpdateUiState();
+        }
+        private readonly bool _loadOnStartup;
+        public MainForm(string? dbPath) : this()
+        {
+            if (dbPath == null) return;
+            _dbPath = Path.GetFullPath(dbPath); txtDbPath.Text = _dbPath;
+            _loadOnStartup = true;
             UpdateUiState();
         }
         protected override async void OnLoad(EventArgs e)
         {
             base.OnLoad(e); // if (File.Exists(_dbPath)) { await LoadOverviewAsync(); }
+            if (_loadOnStartup) { await LoadOverviewAsync(); }
         }
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
@@ -2043,6 +2059,312 @@ ORDER BY Status";
             {
                 Export(table, "stats_serial.xlsx");
             }
+        }
+
+        private void btnFindNext_Click(object sender, EventArgs e)
+        {
+            FindInGrid(forward: true);
+        }
+
+        private void btnFindPrev_Click(object sender, EventArgs e)
+        {
+            FindInGrid(forward: false);
+        }
+
+        private void txtSearch_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                FindInGrid(forward: !e.Shift);
+            }
+        }
+
+        // Searches the grid on the selected tab for txtSearch (case-insensitive),
+        // starting after/before the current cell and wrapping around.
+        private void FindInGrid(bool forward)
+        {
+            var grid = tabs.SelectedTab?.Controls.OfType<DataGridView>().FirstOrDefault();
+            var text = txtSearch.Text;
+            if (grid == null || string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            var columns = grid.Columns.Cast<DataGridViewColumn>()
+                .Where(c => c.Visible)
+                .OrderBy(c => c.DisplayIndex)
+                .Select(c => c.Index)
+                .ToList();
+            var rows = grid.Rows.Cast<DataGridViewRow>()
+                .Where(r => !r.IsNewRow)
+                .Select(r => r.Index)
+                .ToList();
+            int total = rows.Count * columns.Count;
+            if (total == 0)
+            {
+                lblStatus.Text = "Nothing to search.";
+                return;
+            }
+
+            int start = forward ? -1 : total;
+            if (grid.CurrentCell != null)
+            {
+                int r = rows.IndexOf(grid.CurrentCell.RowIndex);
+                int c = columns.IndexOf(grid.CurrentCell.ColumnIndex);
+                if (r >= 0 && c >= 0)
+                {
+                    start = r * columns.Count + c;
+                }
+            }
+
+            for (int i = 1; i <= total; i++)
+            {
+                int pos = ((start + (forward ? i : -i)) % total + total) % total;
+                var cell = grid.Rows[rows[pos / columns.Count]].Cells[columns[pos % columns.Count]];
+                var value = cell.FormattedValue?.ToString();
+                if (value != null && value.Contains(text, StringComparison.OrdinalIgnoreCase))
+                {
+                    grid.CurrentCell = cell;
+                    lblStatus.Text = $"Found \"{text}\" in row {pos / columns.Count + 1}, column {grid.Columns[cell.ColumnIndex].HeaderText}.";
+                    return;
+                }
+            }
+
+            lblStatus.Text = $"\"{text}\" not found.";
+        }
+
+        private async void btnExtractTestPlan_Click(object sender, EventArgs e)
+        {
+            await ExtractAttachmentAsync("TestPlan");
+        }
+
+        private async void btnExtractLogFile_Click(object sender, EventArgs e)
+        {
+            await ExtractAttachmentAsync("LogFile");
+        }
+
+        private async void btnOpenInEditor_Click(object sender, EventArgs e)
+        {
+            var planRunNumber = GetSelectedPlanRunNumber();
+            if (planRunNumber == null)
+                return;
+
+            var attachment = await LoadAttachmentAsync(planRunNumber.Value, "TestPlan");
+            if (attachment == null)
+                return;
+
+            try
+            {
+                var path = WriteToTempFolder(AttachmentFileName(attachment.Value.Name, planRunNumber.Value, "TestPlan"), attachment.Value.Content);
+
+                // Prefer the Editor (same command Windows registers for .TapPlan files), then the
+                // OpenTAP TUI, then the .TapPlan file association. "Use TUI" skips the Editor.
+                // Plugins read config files relative to the working directory, so run from the OpenTAP folder.
+                var openTapDir = Environment.GetEnvironmentVariable("OPENTAP_INSTALL_DIR") ?? @"C:\OpenTAP";
+                var editor = Path.Combine(openTapDir, "Editor.exe");
+                var tap = Path.Combine(openTapDir, "tap.exe");
+                bool tuiInstalled = File.Exists(tap) && File.Exists(Path.Combine(openTapDir, "Packages", "TUI", "OpenTap.Tui.dll"));
+                ProcessStartInfo startInfo;
+                string openedWith;
+                if (File.Exists(editor) && !chkUseTui.Checked)
+                {
+                    startInfo = new ProcessStartInfo(editor) { ArgumentList = { "--launch", path }, WorkingDirectory = openTapDir };
+                    openedWith = "OpenTAP Editor";
+                }
+                else if (tuiInstalled)
+                {
+                    startInfo = new ProcessStartInfo(tap) { ArgumentList = { "tui", path }, WorkingDirectory = openTapDir };
+                    openedWith = "OpenTAP TUI";
+                }
+                else if (chkUseTui.Checked)
+                {
+                    MessageBox.Show(
+                        this,
+                        $"The OpenTAP TUI is not installed in {openTapDir}.",
+                        "TUI Not Found",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return;
+                }
+                else
+                {
+                    startInfo = new ProcessStartInfo(path) { UseShellExecute = true };
+                    openedWith = "the default .TapPlan program";
+                }
+                Process.Start(startInfo);
+
+                lblStatus.Text = $"Opened {Path.GetFileName(path)} in {openedWith}.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    this,
+                    ex.Message,
+                    "Open in Editor Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private async void btnOpenLogFile_Click(object sender, EventArgs e)
+        {
+            var planRunNumber = GetSelectedPlanRunNumber();
+            if (planRunNumber == null)
+                return;
+
+            var attachment = await LoadAttachmentAsync(planRunNumber.Value, "LogFile");
+            if (attachment == null)
+                return;
+
+            try
+            {
+                var path = WriteToTempFolder(AttachmentFileName(attachment.Value.Name, planRunNumber.Value, "LogFile"), attachment.Value.Content);
+                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+                lblStatus.Text = $"Opened {Path.GetFileName(path)} in the default text editor.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    this,
+                    ex.Message,
+                    "Open Log File Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private static string WriteToTempFolder(string fileName, byte[] content)
+        {
+            var folder = Path.Combine(Path.GetTempPath(), "TestRunViewerSqlite");
+            Directory.CreateDirectory(folder);
+            var path = Path.Combine(folder, fileName);
+            File.WriteAllBytes(path, content);
+            return path;
+        }
+
+        private async Task ExtractAttachmentAsync(string attachmentType)
+        {
+            var planRunNumber = GetSelectedPlanRunNumber();
+            if (planRunNumber == null)
+                return;
+
+            var attachment = await LoadAttachmentAsync(planRunNumber.Value, attachmentType);
+            if (attachment == null)
+                return;
+
+            bool isPlan = attachmentType == "TestPlan";
+            using var saveDialog = new SaveFileDialog
+            {
+                Title = isPlan ? "Extract Test Plan" : "Extract Log File",
+                Filter = isPlan
+                    ? "OpenTAP Test Plan (*.TapPlan)|*.TapPlan|All files (*.*)|*.*"
+                    : "Text Files (*.txt)|*.txt|All files (*.*)|*.*",
+                FileName = AttachmentFileName(attachment.Value.Name, planRunNumber.Value, attachmentType),
+                InitialDirectory = Path.GetDirectoryName(_dbPath)
+            };
+
+            if (saveDialog.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            try
+            {
+                File.WriteAllBytes(saveDialog.FileName, attachment.Value.Content);
+                lblStatus.Text = $"Saved {saveDialog.FileName}";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    this,
+                    ex.Message,
+                    "Extract Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private long? GetSelectedPlanRunNumber()
+        {
+            var columnName = cmbMapPlanRunNumber.SelectedItem?.ToString();
+            var rawValue = columnName == null ? null : GetSelectedOverviewCell(columnName);
+
+            if (rawValue is null || rawValue == DBNull.Value ||
+                !long.TryParse(Convert.ToString(rawValue), out var planRunNumber))
+            {
+                MessageBox.Show(
+                    this,
+                    "Select a plan run in the overview first.",
+                    "No Plan Run Selected",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return null;
+            }
+
+            return planRunNumber;
+        }
+
+        // Reads and decompresses (gzip) the TestPlan or LogFile attachment stored for a plan run.
+        // Shows a message and returns null if there is none or it can't be read.
+        private async Task<(string Name, byte[] Content)?> LoadAttachmentAsync(long planRunNumber, string attachmentType)
+        {
+            Cursor.Current = Cursors.WaitCursor;
+            try
+            {
+                using var conn = new SqliteConnection(ConnectionString);
+                await conn.OpenAsync();
+                using var cmd = new SqliteCommand(
+                    @"SELECT a.Name, a.Data
+                      FROM PlanRun pr
+                      JOIN TestRun2Attachment t2a ON t2a.RunID = pr.RunID
+                      JOIN Attachment a ON a.AttachmentID = t2a.AttachmentID
+                      WHERE pr.PlanRunNumber = @PlanRunNumber AND a.AttachmentType = @Type
+                      LIMIT 1", conn);
+                cmd.Parameters.AddWithValue("@PlanRunNumber", planRunNumber);
+                cmd.Parameters.AddWithValue("@Type", attachmentType);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                if (!await reader.ReadAsync() || reader.IsDBNull(1))
+                {
+                    MessageBox.Show(
+                        this,
+                        $"No {attachmentType} is stored for PlanRun {planRunNumber}.",
+                        "Not Found",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+                    return null;
+                }
+
+                var name = reader.IsDBNull(0) ? attachmentType : reader.GetString(0);
+                using var gzip = new GZipStream(reader.GetStream(1), CompressionMode.Decompress);
+                using var output = new MemoryStream();
+                await gzip.CopyToAsync(output);
+                return (name, output.ToArray());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    this,
+                    ex.Message,
+                    $"Error Reading {attachmentType}",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+                return null;
+            }
+            finally
+            {
+                Cursor.Current = Cursors.Default;
+            }
+        }
+
+        private static string AttachmentFileName(string name, long planRunNumber, string attachmentType)
+        {
+            if (attachmentType == "LogFile")
+                return $"PlanRun{planRunNumber}_Log.txt";
+
+            if (name.EndsWith(".TapPlan", StringComparison.OrdinalIgnoreCase))
+                name = name[..^".TapPlan".Length];
+            name = string.Concat(name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
+            return $"{name}_PlanRun{planRunNumber}.TapPlan";
         }
     }
 }
