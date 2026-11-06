@@ -2,6 +2,7 @@
 using DocumentFormat.OpenXml.Drawing.Diagrams;
 using Microsoft.Data.Sqlite;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text;
@@ -128,7 +129,7 @@ SELECT
 	testrun2params.scope,
 	testrun2params.runid,
 	params.name,
-	params.value AS [TimeStamp],
+	params.value AS TimeStamp,
 	params.groupname
 FROM
 	(testrun
@@ -371,7 +372,7 @@ JOIN GetStepName ON
 WHERE
 	( --((GetStepName.StepName = 'Operator Inputs Receiver') or (GetStepName.StepName = 'User Input Test Info Step') or (GetStepName.StepName = 'Factory Data Test Info Step'))
 		--and 
-		((Signal = 'Serial Number') )
+		((result.dim0 = 'Serial Number') )
 )
 ORDER BY
 	planrun.PlanRunNumber ,
@@ -545,7 +546,7 @@ With  GetReport AS (
 			testrun2params.scope,
 			testrun2params.runid,
 			params.name,
-			params.value AS [TimeStamp],
+			params.value AS TimeStamp,
 			params.groupname
 		FROM
 			(testrun
@@ -830,8 +831,8 @@ With GetReport AS
 				testrun.runid = GetStepName.runid)
 			WHERE
 				( ((GetStepName.StepName = 'User Input Test Info Step') OR (GetStepName.StepName = 'Operator Inputs Receiver')) and
-					(Signal = 'Serial Number')
-						and (SerialNumber =@serNum))
+					(result.dim0 = 'Serial Number')
+						and (result.dim1 =@serNum))
 			ORDER BY
 				planrun.PlanRunNumber
 	),
@@ -899,7 +900,7 @@ With GetReport AS
 		testrun2params.scope,
 		testrun2params.runid,
 		params.name,
-		params.value AS [TimeStamp],
+		params.value AS TimeStamp,
 		params.groupname
 	FROM
 		(testrun
@@ -1013,9 +1014,9 @@ With GetReport AS
 		LEFT JOIN GetStepCheckLimit ON
 			testrun.RunID = GetStepCheckLimit.runid)
 	WHERE
-		((SignalName = 'Measurement')
-			OR (SignalName = 'Calibration')
-			Or (SignalName = 'Source')
+		((resulttype.Dim0 = 'Measurement')
+			OR (resulttype.Dim0 = 'Calibration')
+			Or (resulttype.Dim0 = 'Source')
 			--AND (CheckLimit = TRUE)
 			)
 	ORDER BY
@@ -1198,12 +1199,17 @@ Group BY
                             _dbPath = p!; txtDbPath.Text = _dbPath;
                         }
                     }
+                    // Last PostgreSQL connection, to fill in the dialog (the password is never saved)
+                    if (doc.RootElement.TryGetProperty("postgresHost", out el)) _pgHost = el.GetString() ?? _pgHost;
+                    if (doc.RootElement.TryGetProperty("postgresPort", out el) && el.TryGetInt32(out var port)) _pgPort = port;
+                    if (doc.RootElement.TryGetProperty("postgresDatabase", out el)) _pgDatabase = el.GetString() ?? _pgDatabase;
+                    if (doc.RootElement.TryGetProperty("postgresUsername", out el)) _pgUsername = el.GetString() ?? _pgUsername;
                 }
             }
             catch { }
         }
-        private void SaveSettings() { try { Directory.CreateDirectory(SettingsFolder); var json = JsonSerializer.Serialize(new { lastDbPath = _dbPath }, new JsonSerializerOptions { WriteIndented = true }); File.WriteAllText(SettingsFile, json); } catch { } }
-        private void UpdateUiState() { bool hasDb = File.Exists(_dbPath); btnLoad.Enabled = hasDb; btnLoadStatsAll.Enabled = hasDb; btnLoadStatsSerial.Enabled = hasDb && !string.IsNullOrWhiteSpace(txtSerial.Text); btnExportOverview.Enabled = dgvOverview.DataSource is DataTable dtO && dtO.Rows.Count > 0; btnExportDetails.Enabled = dgvDetails.DataSource is DataTable dtD && dtD.Rows.Count > 0; btnExportStatsAll.Enabled = dgvStatsAll.DataSource is DataTable dtA && dtA.Rows.Count > 0; btnExportStatsSerial.Enabled = dgvStatsSerial.DataSource is DataTable dtS && dtS.Rows.Count > 0; }
+        private void SaveSettings() { try { Directory.CreateDirectory(SettingsFolder); var json = JsonSerializer.Serialize(new { lastDbPath = _dbPath, postgresHost = _pgHost, postgresPort = _pgPort, postgresDatabase = _pgDatabase, postgresUsername = _pgUsername }, new JsonSerializerOptions { WriteIndented = true }); File.WriteAllText(SettingsFile, json); } catch { } }
+        private void UpdateUiState() { bool hasDb = HasDatabase; btnLoad.Enabled = hasDb; btnLoadStatsAll.Enabled = hasDb; btnLoadStatsSerial.Enabled = hasDb && !string.IsNullOrWhiteSpace(txtSerial.Text); btnExportOverview.Enabled = dgvOverview.DataSource is DataTable dtO && dtO.Rows.Count > 0; btnExportDetails.Enabled = dgvDetails.DataSource is DataTable dtD && dtD.Rows.Count > 0; btnExportStatsAll.Enabled = dgvStatsAll.DataSource is DataTable dtA && dtA.Rows.Count > 0; btnExportStatsSerial.Enabled = dgvStatsSerial.DataSource is DataTable dtS && dtS.Rows.Count > 0; }
         private struct StatAcc { public long Count; public double Mean; public double M2; }
         private static bool _udfRegistered = false;
         private static void RegisterCustomFunctions(SqliteConnection conn) 
@@ -1215,18 +1221,17 @@ Group BY
             //            conn.CreateAggregate<double?, StatAcc, double?>("variance", new StatAcc { Count = 0, Mean = 0.0, M2 = 0.0 }, (acc, x) => { if (x.HasValue) { acc.Count++; var delta = x.Value - acc.Mean; acc.Mean += delta / acc.Count; var delta2 = x.Value - acc.Mean; acc.M2 += delta * delta2; } return acc; }, acc => acc.Count > 1 ? (double?)(acc.M2 / (acc.Count - 1)) : null, true); conn.CreateAggregate<double?, StatAcc, double?>("stdev", new StatAcc { Count = 0, Mean = 0.0, M2 = 0.0 }, (acc, x) => { if (x.HasValue) { acc.Count++; var delta = x.Value - acc.Mean; acc.Mean += delta / acc.Count; var delta2 = x.Value - acc.Mean; acc.M2 += delta * delta2; } return acc; }, acc => acc.Count > 1 ? (double?)Math.Sqrt(acc.M2 / (acc.Count - 1)) : null, true); 
             _udfRegistered = true; 
         }
-        private async Task<DataTable> ExecuteQueryAsync(string sql, Action<SqliteCommand> configure) 
-        { 
-            DataTable table = new DataTable(); 
-            using var conn = new SqliteConnection(ConnectionString);
+        private async Task<DataTable> ExecuteQueryAsync(string sql, Action<DbCommand>? configure)
+        {
+            DataTable table = new DataTable();
+            using var conn = await OpenConnectionAsync();
 
          //   SQLiteFunction.RegisterFunction(
          //       typeof(TestRunViewerSqlite_Pro.Data.SqliteFunctions.VarianceAggregate));
 
-            await conn.OpenAsync(); RegisterCustomFunctions(conn);
-			SqliteConnection.ClearPool(conn);
+			if (conn is SqliteConnection sqliteConn) SqliteConnection.ClearPool(sqliteConn);
 			//conn.Open();
-            using var cmd = new SqliteCommand(sql, conn); 
+            using var cmd = CreateCommand(conn, sql);
             configure?.Invoke(cmd); 
             //cmd.
             using var reader = await cmd.ExecuteReaderAsync();
@@ -1254,18 +1259,18 @@ Group BY
             }
             table.EndLoadData();
 			conn.Close();  // Async();
+            if (IsPostgres) RestoreColumnCase(table, sql);
             return table;
         }
-        private async Task<DataTable> ExecuteDetailQueryAsync(string sql, Action<SqliteCommand> configure)
+        private async Task<DataTable> ExecuteDetailQueryAsync(string sql, Action<DbCommand>? configure)
         {
             DataTable table = new DataTable();
-            using var conn = new SqliteConnection(ConnectionString);
+            using var conn = await OpenConnectionAsync();
 
             //   SQLiteFunction.RegisterFunction(
             //       typeof(TestRunViewerSqlite_Pro.Data.SqliteFunctions.VarianceAggregate));
 
-            await conn.OpenAsync(); RegisterCustomFunctions(conn);
-            using var cmd = new SqliteCommand(sql, conn);
+            using var cmd = CreateCommand(conn, sql);
             configure?.Invoke(cmd);
             //cmd.
             using var reader = await cmd.ExecuteReaderAsync();
@@ -1298,19 +1303,19 @@ Group BY
 
             table.Load(reader);
             table.EndLoadData();
+            if (IsPostgres) RestoreColumnCase(table, sql);
 
             return table;
         }
-        private async Task<DataTable> ExecuteSummaryQueryAsync(string sql, Action<SqliteCommand> configure)
+        private async Task<DataTable> ExecuteSummaryQueryAsync(string sql, Action<DbCommand>? configure)
         {
             DataTable table = new DataTable();
-            using var conn = new SqliteConnection(ConnectionString);
+            using var conn = await OpenConnectionAsync();
 
             //   SQLiteFunction.RegisterFunction(
             //       typeof(TestRunViewerSqlite_Pro.Data.SqliteFunctions.VarianceAggregate));
 
-            await conn.OpenAsync(); RegisterCustomFunctions(conn);
-            using var cmd = new SqliteCommand(sql, conn);
+            using var cmd = CreateCommand(conn, sql);
             configure?.Invoke(cmd);
             //cmd.
             using var reader = await cmd.ExecuteReaderAsync();
@@ -1343,6 +1348,7 @@ Group BY
 
             table.Load(reader);
             table.EndLoadData();
+            if (IsPostgres) RestoreColumnCase(table, sql);
 
             return table;
         }
@@ -1382,34 +1388,35 @@ ORDER BY Status";
                 lblStatusFilter.Visible = cboStatus.Visible = false;
             }
         }
-        private void AddOverviewFilterParameters(SqliteCommand cmd) 
-        { 
-            cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", " {FILTERS} "); 
-            if (!string.IsNullOrWhiteSpace(txtPlanRunName.Text)) 
-            { 
-                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.PlanRunName LIKE @name\n{FILTERS}"); 
-                cmd.Parameters.Add(new SqliteParameter("@name", "%" + txtPlanRunName.Text.Trim() + "%")); 
-            } 
-            if (cboVerdict.SelectedIndex > 0) 
-            { 
-                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.Verdict = @verdict\n{FILTERS}"); 
-                cmd.Parameters.Add(new SqliteParameter("@verdict", Convert.ToString(cboVerdict.SelectedItem))); 
-            } 
-            if (cboStatus.Visible && cboStatus.SelectedIndex > 0) 
-            { 
-                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.Status = @status\n{FILTERS}"); 
-                cmd.Parameters.Add(new SqliteParameter("@status", Convert.ToString(cboStatus.SelectedItem))); 
-            } 
-            if (dtFrom.Checked) 
-            { 
-                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.TimeStamp >= @from\n{FILTERS}"); 
-                cmd.Parameters.Add(new SqliteParameter("@from", dtFrom.Value.ToString("yyyy-MM-dd HH:mm:ss"))); 
-            } 
-            if (dtTo.Checked) 
-            { 
-                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.TimeStamp <= @to\n{FILTERS}"); 
-                cmd.Parameters.Add(new SqliteParameter("@to", dtTo.Value.ToString("yyyy-MM-dd HH:mm:ss"))); 
-            } 
+        private void AddOverviewFilterParameters(DbCommand cmd)
+        {
+            cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", " {FILTERS} ");
+            if (!string.IsNullOrWhiteSpace(txtPlanRunName.Text))
+            {
+                // SQLite's LIKE ignores case; PostgreSQL's ILIKE is the equivalent
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", $"AND ov.PlanRunName {(IsPostgres ? "ILIKE" : "LIKE")} @name\n{{FILTERS}}");
+                AddParameter(cmd, "@name", "%" + txtPlanRunName.Text.Trim() + "%");
+            }
+            if (cboVerdict.SelectedIndex > 0)
+            {
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.Verdict = @verdict\n{FILTERS}");
+                AddParameter(cmd, "@verdict", Convert.ToString(cboVerdict.SelectedItem));
+            }
+            if (cboStatus.Visible && cboStatus.SelectedIndex > 0)
+            {
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.Status = @status\n{FILTERS}");
+                AddParameter(cmd, "@status", Convert.ToString(cboStatus.SelectedItem));
+            }
+            if (dtFrom.Checked)
+            {
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.TimeStamp >= @from\n{FILTERS}");
+                AddParameter(cmd, "@from", dtFrom.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+            }
+            if (dtTo.Checked)
+            {
+                cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", "AND ov.TimeStamp <= @to\n{FILTERS}");
+                AddParameter(cmd, "@to", dtTo.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+            }
             cmd.CommandText = cmd.CommandText.Replace("{FILTERS}", string.Empty); }
 /*
         private void AddOverviewFilterParameters(SqliteCommand cmd)
@@ -1463,11 +1470,11 @@ ORDER BY Status";
 */
         private async Task LoadOverviewAsync()
         {
-            if (!File.Exists(_dbPath))
+            if (!HasDatabase)
             {
                 MessageBox.Show(
                     this,
-                    "Please open a SQLite database first.",
+                    "Please open a database first.",
                     "No Database",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -1615,7 +1622,7 @@ ORDER BY Status";
                 var table = await ExecuteSummaryQueryAsync(
                     //qstr, //null); //, //
                     _summarySql,
-                    cmd => cmd.Parameters.AddWithValue(
+                    cmd => AddParameter(cmd,
                         "@PlanRunNumber",
                         planRunNumber));
 
@@ -1691,8 +1698,8 @@ ORDER BY Status";
                 var qstr = string.Format($"{_detailsSql} {planRunNumber});");
                 var table = await ExecuteDetailQueryAsync(
                     //qstr, //null); //, //
-                    _detailsSql, 
-                    cmd => cmd.Parameters.AddWithValue(
+                    _detailsSql,
+                    cmd => AddParameter(cmd,
                         "@PlanRunNumber",
                         planRunNumber));
 				BindingSource bs = new BindingSource();
@@ -1733,7 +1740,7 @@ ORDER BY Status";
 
         private async Task LoadStatsAllAsync()
         {
-            if (!File.Exists(_dbPath))
+            if (!HasDatabase)
                 return;
 
             Cursor.Current = Cursors.WaitCursor;
@@ -1773,7 +1780,7 @@ ORDER BY Status";
 
         private async Task LoadStatsBySerialAsync(string serial)
         {
-            if (!File.Exists(_dbPath))
+            if (!HasDatabase)
                 return;
             lblStatus.Text = $"Loading stats (serial {serial})...";
             Cursor.Current = Cursors.WaitCursor;
@@ -1785,7 +1792,7 @@ ORDER BY Status";
             {
                 var table = await ExecuteQueryAsync(
                     _statsBySerialSql,
-                    cmd => cmd.Parameters.AddWithValue("@serNum", serial));
+                    cmd => AddParameter(cmd, "@serNum", serial));
 				if (table.Rows.Count > 1)
 				{
 					dgvStatsSerial.DataSource = table;
@@ -1925,7 +1932,8 @@ ORDER BY Status";
         private void ToggleUi(bool enabled)
         {
             btnOpenDb.Enabled = enabled;
-            btnLoad.Enabled = enabled && File.Exists(_dbPath);
+            btnOpenPostgres.Enabled = enabled;
+            btnLoad.Enabled = enabled && HasDatabase;
 
             dgvOverview.Enabled = enabled;
             dgvDetails.Enabled = enabled;
@@ -2022,6 +2030,7 @@ ORDER BY Status";
             if (openDialog.ShowDialog(this) == DialogResult.OK)
             {
                 _dbPath = openDialog.FileName;
+                _pgConnectionString = null; // back to SQLite
                 txtDbPath.Text = _dbPath;
 
                 SaveSettings();
@@ -2310,17 +2319,16 @@ ORDER BY Status";
             Cursor.Current = Cursors.WaitCursor;
             try
             {
-                using var conn = new SqliteConnection(ConnectionString);
-                await conn.OpenAsync();
-                using var cmd = new SqliteCommand(
+                using var conn = await OpenConnectionAsync();
+                using var cmd = CreateCommand(conn,
                     @"SELECT a.Name, a.Data
                       FROM PlanRun pr
                       JOIN TestRun2Attachment t2a ON t2a.RunID = pr.RunID
                       JOIN Attachment a ON a.AttachmentID = t2a.AttachmentID
                       WHERE pr.PlanRunNumber = @PlanRunNumber AND a.AttachmentType = @Type
-                      LIMIT 1", conn);
-                cmd.Parameters.AddWithValue("@PlanRunNumber", planRunNumber);
-                cmd.Parameters.AddWithValue("@Type", attachmentType);
+                      LIMIT 1");
+                AddParameter(cmd, "@PlanRunNumber", planRunNumber);
+                AddParameter(cmd, "@Type", attachmentType);
 
                 using var reader = await cmd.ExecuteReaderAsync();
                 if (!await reader.ReadAsync() || reader.IsDBNull(1))

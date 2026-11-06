@@ -5,7 +5,8 @@ namespace TestRunViewerSqlite
     partial class MainForm
     {
         private TextBox txtPlanRunName;
-        private Button btnOpenDb; 
+        private Button btnOpenDb;
+        private Button btnOpenPostgres;
         private TextBox txtDbPath; 
         private Button btnLoad;
         private DataGridView dgvOverview; 
@@ -37,6 +38,7 @@ namespace TestRunViewerSqlite
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             btnOpenDb = new Button();
+            btnOpenPostgres = new Button();
             txtDbPath = new TextBox();
             btnLoad = new Button();
             dgvOverview = new DataGridView();
@@ -121,14 +123,23 @@ namespace TestRunViewerSqlite
             btnOpenDb.TabIndex = 0;
             btnOpenDb.Text = "Open DB...";
             btnOpenDb.Click += btnOpenDb_Click;
-            // 
+            //
+            // btnOpenPostgres
+            //
+            btnOpenPostgres.Location = new Point(138, 12);
+            btnOpenPostgres.Name = "btnOpenPostgres";
+            btnOpenPostgres.Size = new Size(150, 32);
+            btnOpenPostgres.TabIndex = 3;
+            btnOpenPostgres.Text = "Open PostgreSQL...";
+            btnOpenPostgres.Click += btnOpenPostgres_Click;
+            //
             // txtDbPath
-            // 
+            //
             txtDbPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            txtDbPath.Location = new Point(138, 14);
+            txtDbPath.Location = new Point(294, 14);
             txtDbPath.Name = "txtDbPath";
             txtDbPath.ReadOnly = true;
-            txtDbPath.Size = new Size(500, 27);
+            txtDbPath.Size = new Size(344, 27);
             txtDbPath.TabIndex = 1;
             // 
             // btnLoad
@@ -661,6 +672,7 @@ namespace TestRunViewerSqlite
             CancelButton = btnApplyFilters;
             ClientSize = new Size(1362, 953);
             Controls.Add(btnOpenDb);
+            Controls.Add(btnOpenPostgres);
             Controls.Add(txtDbPath);
             Controls.Add(btnLoad);
             Controls.Add(grpFilters);

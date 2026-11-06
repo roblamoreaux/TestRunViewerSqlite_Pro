@@ -5,7 +5,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.2.2</Version>
+    <Version>1.3.0</Version>
     <ApplicationIcon>electronic_electronics_chip_memory_ram_icon_261977.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
@@ -14,5 +14,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.14" />
     <PackageReference Include="ClosedXML" Version="0.103.0" />
+    <PackageReference Include="Npgsql" Version="9.0.5" />
   </ItemGroup>
 </Project>

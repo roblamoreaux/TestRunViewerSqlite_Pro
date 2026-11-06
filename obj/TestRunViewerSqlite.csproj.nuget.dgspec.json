@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj": {
-      "version": "1.2.2",
+      "version": "1.3.0",
       "restore": {
         "projectUniqueName": "C:\\Users\\TazTransfer\\OneDrive - New Eagle\\Documents\\Claude\\TestRunViewerSqlite\\TestRunViewerSqlite.csproj",
         "projectName": "TestRunViewerSqlite",
@@ -60,6 +60,10 @@
             "Microsoft.Data.Sqlite": {
               "target": "Package",
               "version": "[9.0.14, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[9.0.5, )"
             }
           },
           "imports": [

@@ -20,6 +20,10 @@ Open a results file on startup (loads the overview automatically):
 TestRunViewerSqlite.exe "C:\path\to\Results.TapResults"
 dotnet run --project TestRunViewerSqlite.csproj -- "C:\path\to\Results.TapResults"
 ```
+PostgreSQL: click **Open PostgreSQL...** and enter the host, port, database, username and password of an OpenTAP
+PostgreSQL results database. The connection is read-only. The password is not saved; the other fields are remembered.
+The queries are written for SQLite and translated for PostgreSQL in `MainForm.Postgres.cs` (`ToPostgres`).
+
 Build the installer (needs the WiX tool: `dotnet tool install --global wix --version 5.0.2`):
 ```bash
 powershell -ExecutionPolicy Bypass -File Installer\build-installer.ps1
