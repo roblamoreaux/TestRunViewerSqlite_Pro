@@ -23,6 +23,9 @@ namespace TestRunViewerSqlite
         private Button btnExportDetails; 
         private Button btnExportStatsAll; 
         private Button btnExportStatsSerial;
+        private Button btnExportSelectedDetails;
+        private Button btnExportSelectedStatsAll;
+        private Button btnExportSelectedStatsSerial;
         private Button btnApplyFilters;
         private CheckBox chkWithSerialNumber;
         private Button btnGetDetails;
@@ -36,7 +39,6 @@ namespace TestRunViewerSqlite
         private StatusStrip statusStrip1;
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             btnOpenDb = new Button();
             btnOpenPostgres = new Button();
             txtDbPath = new TextBox();
@@ -55,6 +57,9 @@ namespace TestRunViewerSqlite
             btnExportDetails = new Button();
             btnExportStatsAll = new Button();
             btnExportStatsSerial = new Button();
+            btnExportSelectedDetails = new Button();
+            btnExportSelectedStatsAll = new Button();
+            btnExportSelectedStatsSerial = new Button();
             btnApplyFilters = new Button();
             chkWithSerialNumber = new CheckBox();
             btnGetDetails = new Button();
@@ -93,11 +98,13 @@ namespace TestRunViewerSqlite
             btnOpenInEditor = new Button();
             btnOpenLogFile = new Button();
             chkUseTui = new CheckBox();
+            picLogo = new PictureBox();
             ((System.ComponentModel.ISupportInitialize)dgvOverview).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvDetails).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvSummary).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvStatsAll).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvStatsSerial).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)picLogo).BeginInit();
             grpFilters.SuspendLayout();
             grpMapping.SuspendLayout();
             grpStats.SuspendLayout();
@@ -139,13 +146,13 @@ namespace TestRunViewerSqlite
             txtDbPath.Location = new Point(294, 14);
             txtDbPath.Name = "txtDbPath";
             txtDbPath.ReadOnly = true;
-            txtDbPath.Size = new Size(344, 27);
+            txtDbPath.Size = new Size(900, 27);
             txtDbPath.TabIndex = 1;
             // 
             // btnLoad
             // 
             btnLoad.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnLoad.Location = new Point(650, 12);
+            btnLoad.Location = new Point(1200, 12);
             btnLoad.Name = "btnLoad";
             btnLoad.Size = new Size(150, 32);
             btnLoad.TabIndex = 2;
@@ -265,28 +272,55 @@ namespace TestRunViewerSqlite
             // 
             btnExportDetails.Location = new Point(267, 3);
             btnExportDetails.Name = "btnExportDetails";
-            btnExportDetails.Size = new Size(600, 30);
+            btnExportDetails.Size = new Size(297, 30);
             btnExportDetails.TabIndex = 1;
             btnExportDetails.Text = "Export...";
             btnExportDetails.Click += btnExportDetails_Click;
-            // 
+            //
+            // btnExportSelectedDetails
+            //
+            btnExportSelectedDetails.Location = new Point(570, 3);
+            btnExportSelectedDetails.Name = "btnExportSelectedDetails";
+            btnExportSelectedDetails.Size = new Size(297, 30);
+            btnExportSelectedDetails.TabIndex = 2;
+            btnExportSelectedDetails.Text = "Export Selected...";
+            btnExportSelectedDetails.Click += btnExportSelectedDetails_Click;
+            //
             // btnExportStatsAll
-            // 
+            //
             btnExportStatsAll.Location = new Point(267, 3);
             btnExportStatsAll.Name = "btnExportStatsAll";
-            btnExportStatsAll.Size = new Size(600, 30);
+            btnExportStatsAll.Size = new Size(297, 30);
             btnExportStatsAll.TabIndex = 1;
             btnExportStatsAll.Text = "Export...";
             btnExportStatsAll.Click += btnExportStatsAll_Click;
-            // 
+            //
+            // btnExportSelectedStatsAll
+            //
+            btnExportSelectedStatsAll.Location = new Point(570, 3);
+            btnExportSelectedStatsAll.Name = "btnExportSelectedStatsAll";
+            btnExportSelectedStatsAll.Size = new Size(297, 30);
+            btnExportSelectedStatsAll.TabIndex = 2;
+            btnExportSelectedStatsAll.Text = "Export Selected...";
+            btnExportSelectedStatsAll.Click += btnExportSelectedStatsAll_Click;
+            //
             // btnExportStatsSerial
-            // 
+            //
             btnExportStatsSerial.Location = new Point(267, 3);
             btnExportStatsSerial.Name = "btnExportStatsSerial";
-            btnExportStatsSerial.Size = new Size(600, 30);
+            btnExportStatsSerial.Size = new Size(297, 30);
             btnExportStatsSerial.TabIndex = 0;
             btnExportStatsSerial.Text = "Export...";
             btnExportStatsSerial.Click += btnExportStatsSerial_Click;
+            //
+            // btnExportSelectedStatsSerial
+            //
+            btnExportSelectedStatsSerial.Location = new Point(570, 3);
+            btnExportSelectedStatsSerial.Name = "btnExportSelectedStatsSerial";
+            btnExportSelectedStatsSerial.Size = new Size(297, 30);
+            btnExportSelectedStatsSerial.TabIndex = 2;
+            btnExportSelectedStatsSerial.Text = "Export Selected...";
+            btnExportSelectedStatsSerial.Click += btnExportSelectedStatsSerial_Click;
             // 
             // btnApplyFilters
             // 
@@ -614,6 +648,7 @@ namespace TestRunViewerSqlite
             // 
             tabDetails.Controls.Add(dgvDetails);
             tabDetails.Controls.Add(btnExportDetails);
+            tabDetails.Controls.Add(btnExportSelectedDetails);
             tabDetails.Location = new Point(4, 29);
             tabDetails.Name = "tabDetails";
             tabDetails.Size = new Size(1330, 442);
@@ -624,6 +659,7 @@ namespace TestRunViewerSqlite
             // 
             tabAll.Controls.Add(dgvStatsAll);
             tabAll.Controls.Add(btnExportStatsAll);
+            tabAll.Controls.Add(btnExportSelectedStatsAll);
             tabAll.Location = new Point(4, 29);
             tabAll.Name = "tabAll";
             tabAll.Size = new Size(1330, 442);
@@ -634,6 +670,7 @@ namespace TestRunViewerSqlite
             // 
             tabSer.Controls.Add(dgvStatsSerial);
             tabSer.Controls.Add(btnExportStatsSerial);
+            tabSer.Controls.Add(btnExportSelectedStatsSerial);
             tabSer.Controls.Add(pnlSer1);
             tabSer.Location = new Point(4, 29);
             tabSer.Name = "tabSer";
@@ -664,9 +701,20 @@ namespace TestRunViewerSqlite
             txtPlanRunName.PlaceholderText = "PlanRun Name contains...";
             txtPlanRunName.Size = new Size(300, 27);
             txtPlanRunName.TabIndex = 8;
-            // 
+            //
+            // picLogo
+            //
+            picLogo.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            picLogo.BackColor = Color.Transparent;
+            picLogo.Location = new Point(1165, 54);
+            picLogo.Name = "picLogo";
+            picLogo.Size = new Size(185, 185);
+            picLogo.SizeMode = PictureBoxSizeMode.Zoom;
+            picLogo.TabIndex = 9;
+            picLogo.TabStop = false;
+            //
             // MainForm
-            // 
+            //
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnApplyFilters;
@@ -680,16 +728,17 @@ namespace TestRunViewerSqlite
             Controls.Add(split);
             Controls.Add(statusStrip1);
             Controls.Add(txtPlanRunName);
-            Icon = (Icon)resources.GetObject("$this.Icon");
+            Controls.Add(picLogo);
             Location = new Point(100, 50);
             MinimumSize = new Size(1040, 600);
             Name = "MainForm";
-            Text = "Test Run Viewer (SQLite)";
+            Text = "Test Run Viewer";
             ((System.ComponentModel.ISupportInitialize)dgvOverview).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvDetails).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvSummary).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvStatsAll).EndInit();
             ((System.ComponentModel.ISupportInitialize)dgvStatsSerial).EndInit();
+            ((System.ComponentModel.ISupportInitialize)picLogo).EndInit();
             grpFilters.ResumeLayout(false);
             grpFilters.PerformLayout();
             grpMapping.ResumeLayout(false);
@@ -741,5 +790,6 @@ namespace TestRunViewerSqlite
         private Button btnOpenInEditor;
         private Button btnOpenLogFile;
         private CheckBox chkUseTui;
+        private PictureBox picLogo;
     }
 }

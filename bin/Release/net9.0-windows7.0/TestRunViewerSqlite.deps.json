@@ -6,10 +6,11 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v9.0": {
-      "TestRunViewerSqlite/1.1.0": {
+      "TestRunViewerSqlite/1.6.0": {
         "dependencies": {
           "ClosedXML": "0.104.0",
-          "Microsoft.Data.Sqlite": "9.0.14"
+          "Microsoft.Data.Sqlite": "9.0.14",
+          "Npgsql": "9.0.5"
         },
         "runtime": {
           "TestRunViewerSqlite.dll": {}
@@ -86,6 +87,39 @@
             "assemblyVersion": "9.0.14.0",
             "fileVersion": "9.0.1426.11905",
             "localPath": "Microsoft.Data.Sqlite.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.1024.46610",
+            "localPath": "Microsoft.Extensions.DependencyInjection.Abstractions.dll"
+          }
+        }
+      },
+      "Microsoft.Extensions.Logging.Abstractions/8.0.2": {
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.2"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.1024.46610",
+            "localPath": "Microsoft.Extensions.Logging.Abstractions.dll"
+          }
+        }
+      },
+      "Npgsql/9.0.5": {
+        "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.2"
+        },
+        "runtime": {
+          "lib/net8.0/Npgsql.dll": {
+            "assemblyVersion": "9.0.5.0",
+            "fileVersion": "9.0.5.0",
+            "localPath": "Npgsql.dll"
           }
         }
       },
@@ -274,7 +308,7 @@
     }
   },
   "libraries": {
-    "TestRunViewerSqlite/1.1.0": {
+    "TestRunViewerSqlite/1.6.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -327,6 +361,27 @@
       "sha512": "sha512-EG3EHsTmmSf5Sk/JNSBMly1DZdBgg3OOb6/1Fg/eG/SEMTShpFnQPMi/PgiVfF4CPIS6d+BPrW91EeJyLhDOIQ==",
       "path": "microsoft.data.sqlite.core/9.0.14",
       "hashPath": "microsoft.data.sqlite.core.9.0.14.nupkg.sha512"
+    },
+    "Microsoft.Extensions.DependencyInjection.Abstractions/8.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3iE7UF7MQkCv1cxzCahz+Y/guQbTqieyxyaWKhrRO91itI9cOKO76OHeQDahqG4MmW5umr3CcCvGmK92lWNlbg==",
+      "path": "microsoft.extensions.dependencyinjection.abstractions/8.0.2",
+      "hashPath": "microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Logging.Abstractions/8.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-nroMDjS7hNBPtkZqVBbSiQaQjWRDxITI8Y7XnDs97rqG3EbzVTNLZQf7bIeUJcaHOV8bca47s1Uxq94+2oGdxA==",
+      "path": "microsoft.extensions.logging.abstractions/8.0.2",
+      "hashPath": "microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512"
+    },
+    "Npgsql/9.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-NRZkUlTUh06f7f14wriEoO+BrJcyw/agh3xozXLM3ii7C/08SyXqcI89EMfZJuHkOcfDU8W0enGcZ8RGNVOw0w==",
+      "path": "npgsql/9.0.5",
+      "hashPath": "npgsql.9.0.5.nupkg.sha512"
     },
     "RBush/3.2.0": {
       "type": "package",

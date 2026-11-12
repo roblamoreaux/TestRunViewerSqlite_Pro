@@ -17,13 +17,28 @@ namespace TestRunViewerSqlite
             {
                 MessageBox.Show(
                     $"File not found:\n{dbPath}",
-                    "Test Run Viewer (SQLite)",
+                    "Test Run Viewer",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 dbPath = null;
             }
 
-            Application.Run(new MainForm(dbPath));
+            // Splash screen until the main window is up, shown for at least 1.5 seconds
+            using var splash = new SplashForm();
+            splash.Show();
+            splash.Update();
+            var splashTime = System.Diagnostics.Stopwatch.StartNew();
+
+            var form = new MainForm(dbPath);
+            form.Shown += async (_, _) =>
+            {
+                var remaining = TimeSpan.FromSeconds(1.5) - splashTime.Elapsed;
+                if (remaining > TimeSpan.Zero)
+                    await Task.Delay(remaining);
+                splash.Close();
+                form.Activate();
+            };
+            Application.Run(form);
         }
     }
 }

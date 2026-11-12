@@ -92,6 +92,7 @@ namespace TestRunViewerSqlite
             "GetStepVerdict.Verdict", "GetStepCheckLimit.CheckLimit",                                  // Details
             "GetScriptName.ScriptName", "GetReport.MinLimit", "GetReport.MaxLimit", "GetReport.SignalName",
             "GetReport.CheckLimit", "GetReport.SerialNumber", "GetReport.Signal",                      // Stats
+            "GetReport.LatestMinLimit", "GetReport.LatestMaxLimit", "GetReport.LatestCheckLimit",      // (same value in every row of a group)
         };
 
         private static string WrapUngroupedColumns(string sql)

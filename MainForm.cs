@@ -262,6 +262,7 @@ GROUP BY
 	testrun.runid,
     PrimaryKey
 ORDER BY
+	GetStepTimestamp.TimeStamp NULLS LAST,
 	PrimaryKey;";
 /*    testrun.runid,
 	GetStepTimestamp.TimeStamp,
@@ -675,9 +676,21 @@ With  GetReport AS (
 		WHERE
 			(((params.Name)= 'Name')
 				AND ((params.GroupName)= ''))
+		),
+	-- Limits from each step's latest run (most recent StartTime)
+	GetReportLatest AS (
+		SELECT GetReport.*,
+			FIRST_VALUE(GetReport.MinLimit) OVER LatestRun AS LatestMinLimit,
+			FIRST_VALUE(GetReport.MaxLimit) OVER LatestRun AS LatestMaxLimit,
+			FIRST_VALUE(GetReport.CheckLimit) OVER LatestRun AS LatestCheckLimit
+		FROM GetReport
+		WINDOW LatestRun AS (
+			PARTITION BY GetReport.ParentName, GetReport.StepName, GetReport.ValueName, GetReport.Verdict
+			ORDER BY GetReport.TimeStamp DESC NULLS LAST, GetReport.runid DESC)
 		)
 Select
-	GetScriptName.ScriptName, 
+	MIN(GetReport.TimeStamp) as FirstRunTimeStamp,
+	GetScriptName.ScriptName,
 	GetReport.ParentName, 
 	GetReport.StepName,
 	GetReport.ValueName,
@@ -688,14 +701,14 @@ Select
 	variance(GetReport.Value) as Variance,
 	COALESCE(stdev(GetReport.Value),0.0) as StandardDeviation,
 	Count(GetReport.Value) as Count,
-	GetReport.MinLimit,
-	GetReport.MaxLimit,
+	GetReport.LatestMinLimit as MinLimit,
+	GetReport.LatestMaxLimit as MaxLimit,
 	--min((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value)), (avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK,
 	--((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value))) as CPK1, 
     --((avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK2,
     Group_concat	(GetReport.Value, ', '),
 	GetReport.SignalName,
-	GetReport.CheckLimit ,
+	COALESCE(GetReport.LatestCheckLimit, '') as CheckLimit, -- text even when the first row has none, so the column loads as text
 	Group_concat(GetReport.TimeStamp, ', '),
 	Group_concat(GetReport.runid, ', ')
 FROM
@@ -704,9 +717,13 @@ FROM
 		planrun.runid = testrun.planrunid)
 	Inner JOIN GetScriptName ON
 		testrun.runid = GetScriptName.runid)
-	LEFT JOIN GetReport ON
+	LEFT JOIN GetReportLatest GetReport ON
 		GetReport.runid = testrun.runid)
 Group BY
+	GetReport.ParentName , GetReport.StepName , GetReport.ValueName, GetReport.Verdict
+ORDER BY
+	-- earliest run of each step first; rows with no timestamp last
+	MIN(GetReport.TimeStamp) NULLS LAST,
 	GetReport.ParentName , GetReport.StepName , GetReport.ValueName, GetReport.Verdict
 --ORDER BY
 --	 GetReport.ValueName
@@ -1041,9 +1058,21 @@ With GetReport AS
 		WHERE
 			(((params.Name)= 'Name')
 				AND ((params.GroupName)= ''))
+		),
+	-- Limits from each step's latest run (most recent StartTime)
+	GetReportLatest AS (
+		SELECT GetReport.*,
+			FIRST_VALUE(GetReport.MinLimit) OVER LatestRun AS LatestMinLimit,
+			FIRST_VALUE(GetReport.MaxLimit) OVER LatestRun AS LatestMaxLimit,
+			FIRST_VALUE(GetReport.CheckLimit) OVER LatestRun AS LatestCheckLimit
+		FROM GetReport
+		WINDOW LatestRun AS (
+			PARTITION BY GetReport.ParentName, GetReport.StepName, GetReport.ValueName, GetReport.Verdict
+			ORDER BY GetReport.TimeStamp DESC NULLS LAST, GetReport.runid DESC)
 		)
 Select
-	COALESCE(GetScriptName.ScriptName, ' ') as Scriptname, 
+	MIN(GetReport.TimeStamp) as FirstRunTimeStamp,
+	COALESCE(GetScriptName.ScriptName, ' ') as Scriptname,
 	COALESCE(GetReport.SerialNumber, ' ') as SerialNumber,
 	COALESCE(GetReport.ParentName, ' ') as ParentName, 
 	COALESCE(GetReport.StepName, ' ') as StepName,
@@ -1056,8 +1085,8 @@ Select
 	COALESCE(variance(GetReport.Value), 0.0) as Variance,
 	COALESCE(stdev(GetReport.Value),0.0) as StandardDeviation,
 	Count(GetReport.Value) as Count,
-	COALESCE(GetReport.MinLimit, 0.0)  as MinLimit,
-	COALESCE(GetReport.MaxLimit, 0.0)  as MaxLimit,
+	COALESCE(GetReport.LatestMinLimit, 0.0)  as MinLimit,
+	COALESCE(GetReport.LatestMaxLimit, 0.0)  as MaxLimit,
 	---GetReport.MinLimit,
 	---GetReport.MaxLimit,
 	--min((GetReport.MaxLimit - avg(GetReport.Value))/(3*stdev(GetReport.Value)), (avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK,
@@ -1065,7 +1094,7 @@ Select
     --((avg(GetReport.Value)- GetReport.MinLimit)/(3*stdev(GetReport.Value))) as CPK2,
     --GROUP_CONCAT(GetReport.Value, ', '),
 	GetReport.SignalName,
-	GetReport.CheckLimit 
+	COALESCE(GetReport.LatestCheckLimit, '') as CheckLimit -- text even when the first row has none
 	--GROUP_CONCAT(GetReport.TimeStamp, ', ') as Timestamps,
 	--GROUP_CONCAT(GetReport.runid, ', ') as RunIDS
 FROM
@@ -1074,9 +1103,13 @@ FROM
 		planrun.runid = testrun.planrunid)
 	Inner JOIN GetScriptName ON
 		testrun.runid = GetScriptName.runid)
-	LEFT JOIN GetReport ON
+	LEFT JOIN GetReportLatest GetReport ON
 		GetReport.runid = testrun.runid)
 Group BY
+	GetReport.ParentName , GetReport.StepName , GetReport.ValueName, GetReport.Verdict
+ORDER BY
+	-- earliest run of each step first; rows with no timestamp last
+	MIN(GetReport.TimeStamp) NULLS LAST,
 	GetReport.ParentName , GetReport.StepName , GetReport.ValueName, GetReport.Verdict
 --ORDER BY
 --	 GetReport.ValueName
@@ -1086,6 +1119,13 @@ Group BY
         {
             InitializeComponent(); dgvOverview.AutoGenerateColumns = true;
             Text += $" v{typeof(MainForm).Assembly.GetName().Version?.ToString(3)}";
+            using (var iconStream = typeof(MainForm).Assembly.GetManifestResourceStream("TAP_Explorer.ico")!)
+                Icon = new Icon(iconStream);
+            // Logo in the empty top-right corner; hidden when the window is too narrow to fit it beside the boxes
+            using (var logoStream = typeof(MainForm).Assembly.GetManifestResourceStream("TAP_Explorer_splash.png")!)
+            using (var logo = Image.FromStream(logoStream))
+                picLogo.Image = new Bitmap(logo);
+            Resize += (_, _) => picLogo.Visible = picLogo.Left >= Math.Max(grpFilters.Right, grpStats.Right) + 6;
             dgvDetails.AutoGenerateColumns = true; 
             dgvStatsAll.AutoGenerateColumns = true;
             dgvStatsSerial.AutoGenerateColumns = true;
@@ -1204,12 +1244,16 @@ Group BY
                     if (doc.RootElement.TryGetProperty("postgresPort", out el) && el.TryGetInt32(out var port)) _pgPort = port;
                     if (doc.RootElement.TryGetProperty("postgresDatabase", out el)) _pgDatabase = el.GetString() ?? _pgDatabase;
                     if (doc.RootElement.TryGetProperty("postgresUsername", out el)) _pgUsername = el.GetString() ?? _pgUsername;
+                    // Check boxes as they were when the app last closed
+                    if (doc.RootElement.TryGetProperty("withSerialNumber", out el) && el.ValueKind is JsonValueKind.True or JsonValueKind.False) chkWithSerialNumber.Checked = el.GetBoolean();
+                    if (doc.RootElement.TryGetProperty("failsOnly", out el) && el.ValueKind is JsonValueKind.True or JsonValueKind.False) chkFailsOnly.Checked = el.GetBoolean();
+                    if (doc.RootElement.TryGetProperty("useTui", out el) && el.ValueKind is JsonValueKind.True or JsonValueKind.False) chkUseTui.Checked = el.GetBoolean();
                 }
             }
             catch { }
         }
-        private void SaveSettings() { try { Directory.CreateDirectory(SettingsFolder); var json = JsonSerializer.Serialize(new { lastDbPath = _dbPath, postgresHost = _pgHost, postgresPort = _pgPort, postgresDatabase = _pgDatabase, postgresUsername = _pgUsername }, new JsonSerializerOptions { WriteIndented = true }); File.WriteAllText(SettingsFile, json); } catch { } }
-        private void UpdateUiState() { bool hasDb = HasDatabase; btnLoad.Enabled = hasDb; btnLoadStatsAll.Enabled = hasDb; btnLoadStatsSerial.Enabled = hasDb && !string.IsNullOrWhiteSpace(txtSerial.Text); btnExportOverview.Enabled = dgvOverview.DataSource is DataTable dtO && dtO.Rows.Count > 0; btnExportDetails.Enabled = dgvDetails.DataSource is DataTable dtD && dtD.Rows.Count > 0; btnExportStatsAll.Enabled = dgvStatsAll.DataSource is DataTable dtA && dtA.Rows.Count > 0; btnExportStatsSerial.Enabled = dgvStatsSerial.DataSource is DataTable dtS && dtS.Rows.Count > 0; }
+        private void SaveSettings() { try { Directory.CreateDirectory(SettingsFolder); var json = JsonSerializer.Serialize(new { lastDbPath = _dbPath, postgresHost = _pgHost, postgresPort = _pgPort, postgresDatabase = _pgDatabase, postgresUsername = _pgUsername, withSerialNumber = chkWithSerialNumber.Checked, failsOnly = chkFailsOnly.Checked, useTui = chkUseTui.Checked }, new JsonSerializerOptions { WriteIndented = true }); File.WriteAllText(SettingsFile, json); } catch { } }
+        private void UpdateUiState() { bool hasDb = HasDatabase; btnLoad.Enabled = hasDb; btnLoadStatsAll.Enabled = hasDb; btnLoadStatsSerial.Enabled = hasDb && !string.IsNullOrWhiteSpace(txtSerial.Text); btnExportOverview.Enabled = dgvOverview.DataSource is DataTable dtO && dtO.Rows.Count > 0; btnExportDetails.Enabled = dgvDetails.DataSource is DataTable dtD && dtD.Rows.Count > 0; btnExportStatsAll.Enabled = dgvStatsAll.DataSource is DataTable dtA && dtA.Rows.Count > 0; btnExportStatsSerial.Enabled = dgvStatsSerial.DataSource is DataTable dtS && dtS.Rows.Count > 0; UpdateExportSelectedButtons(); }
         private struct StatAcc { public long Count; public double Mean; public double M2; }
         private static bool _udfRegistered = false;
         private static void RegisterCustomFunctions(SqliteConnection conn) 
@@ -1963,6 +2007,15 @@ ORDER BY Status";
                 enabled &&
                 dgvStatsSerial.DataSource is DataTable dtStatsSerial &&
                 dtStatsSerial.Rows.Count > 0;
+
+            UpdateExportSelectedButtons();
+        }
+
+        private void UpdateExportSelectedButtons()
+        {
+            btnExportSelectedDetails.Enabled = btnExportDetails.Enabled;
+            btnExportSelectedStatsAll.Enabled = btnExportStatsAll.Enabled;
+            btnExportSelectedStatsSerial.Enabled = btnExportStatsSerial.Enabled;
         }
 
         private async void btnLoad_Click(object sender, EventArgs e)
@@ -2070,6 +2123,58 @@ ORDER BY Status";
             }
         }
 
+        private void btnExportSelectedDetails_Click(object sender, EventArgs e)
+        {
+            ExportSelected(dgvDetails, "details_selection.xlsx");
+        }
+
+        private void btnExportSelectedStatsAll_Click(object sender, EventArgs e)
+        {
+            ExportSelected(dgvStatsAll, "stats_all_selection.xlsx");
+        }
+
+        private void btnExportSelectedStatsSerial_Click(object sender, EventArgs e)
+        {
+            ExportSelected(dgvStatsSerial, "stats_serial_selection.xlsx");
+        }
+
+        private void ExportSelected(DataGridView grid, string defaultFile)
+        {
+            var table = SelectedCellsTable(grid);
+            if (table == null)
+            {
+                MessageBox.Show(
+                    this,
+                    "Select the cells to export first.",
+                    "Export Selected",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            Export(table, defaultFile);
+        }
+
+        // The selected block of cells as a table: every row and column that has a selected cell, in the
+        // order shown in the grid. Cells inside that range that aren't selected are left blank.
+        private static DataTable? SelectedCellsTable(DataGridView grid)
+        {
+            var cells = grid.SelectedCells.Cast<DataGridViewCell>().ToList();
+            if (cells.Count == 0)
+                return null;
+
+            var selected = cells.Select(c => (c.RowIndex, c.ColumnIndex)).ToHashSet();
+            var columns = cells.Select(c => grid.Columns[c.ColumnIndex]).Distinct().OrderBy(c => c.DisplayIndex).ToList();
+            var rows = cells.Select(c => c.RowIndex).Distinct().OrderBy(r => r).ToList();
+
+            var table = new DataTable();
+            foreach (var column in columns)
+                table.Columns.Add(column.HeaderText, typeof(object));
+            foreach (var r in rows)
+                table.Rows.Add(columns.Select(c => selected.Contains((r, c.Index)) ? grid.Rows[r].Cells[c.Index].Value : null).ToArray());
+            return table;
+        }
+
         private void btnFindNext_Click(object sender, EventArgs e)
         {
             FindInGrid(forward: true);
@@ -2167,16 +2272,24 @@ ORDER BY Status";
             {
                 var path = WriteToTempFolder(AttachmentFileName(attachment.Value.Name, planRunNumber.Value, "TestPlan"), attachment.Value.Content);
 
-                // Prefer the Editor (same command Windows registers for .TapPlan files), then the
-                // OpenTAP TUI, then the .TapPlan file association. "Use TUI" skips the Editor.
-                // Plugins read config files relative to the working directory, so run from the OpenTAP folder.
+                // Prefer the OpenTAP GUI ("tap gui"), then the Editor (same command Windows registers for
+                // .TapPlan files), then the OpenTAP TUI, then the .TapPlan file association. "Use TUI" skips
+                // the GUI and Editor. Plugins read config files relative to the working directory, so run
+                // from the OpenTAP folder.
                 var openTapDir = Environment.GetEnvironmentVariable("OPENTAP_INSTALL_DIR") ?? @"C:\OpenTAP";
                 var editor = Path.Combine(openTapDir, "Editor.exe");
                 var tap = Path.Combine(openTapDir, "tap.exe");
+                bool guiInstalled = File.Exists(tap) && File.Exists(Path.Combine(openTapDir, "Packages", "GUI", "OpenTap.Gui.dll"));
                 bool tuiInstalled = File.Exists(tap) && File.Exists(Path.Combine(openTapDir, "Packages", "TUI", "OpenTap.Tui.dll"));
                 ProcessStartInfo startInfo;
                 string openedWith;
-                if (File.Exists(editor) && !chkUseTui.Checked)
+                if (guiInstalled && !chkUseTui.Checked)
+                {
+                    // A windowed app, so no console window for tap.exe
+                    startInfo = new ProcessStartInfo(tap) { ArgumentList = { "gui", path }, WorkingDirectory = openTapDir, CreateNoWindow = true };
+                    openedWith = "OpenTAP GUI";
+                }
+                else if (File.Exists(editor) && !chkUseTui.Checked)
                 {
                     startInfo = new ProcessStartInfo(editor) { ArgumentList = { "--launch", path }, WorkingDirectory = openTapDir };
                     openedWith = "OpenTAP Editor";
